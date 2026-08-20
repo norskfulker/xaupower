@@ -1,0 +1,64 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* XAUPower design tokens (HSL channels) */
+    --ink: 20 20% 5%;
+    --canvas: 40 60% 96%;
+    --orange: 20 100% 55%;
+    --gold: 45 100% 63%;
+    --teal: 165 100% 43%;
+    --hotpink: 348 100% 62%;
+    --muted-label: 30 15% 60%;
+
+    /* shadcn mapped to brand */
+    --background: 40 60% 96%;
+    --foreground: 20 20% 5%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 20% 5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 20% 5%;
+    --primary: 20 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 30% 92%;
+    --secondary-foreground: 20 20% 5%;
+    --muted: 40 20% 90%;
+    --muted-foreground: 30 15% 45%;
+    --accent: 45 100% 63%;
+    --accent-foreground: 20 20% 5%;
+    --destructive: 348 100% 62%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 20 100% 55%;
+    --radius: 1rem;
+    --chart-1: 20 100% 55%;
+    --chart-2: 165 100% 43%;
+    --chart-3: 45 100% 63%;
+    --chart-4: 348 100% 62%;
+    --chart-5: 30 15% 60%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-canvas text-ink antialiased;
+    font-family: var(--font-inter), Inter, sans-serif;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
