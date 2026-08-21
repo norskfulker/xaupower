@@ -5,15 +5,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { formatPrice, formatUsd } from "@/lib/format";
-import type { Signal, SignalDirection, SignalPair } from "@/lib/types";
+import type { Signal, SignalDirection } from "@/lib/types";
 
 export function SignalManager({
   initialSignals,
@@ -21,7 +14,6 @@ export function SignalManager({
   initialSignals: Signal[];
 }) {
   const [signals, setSignals] = useState(initialSignals);
-  const [pair, setPair] = useState<SignalPair>("XAUUSD");
   const [direction, setDirection] = useState<SignalDirection>("long");
   const [entry, setEntry] = useState("");
   const [sl, setSl] = useState("");
@@ -36,7 +28,7 @@ export function SignalManager({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          pair,
+          pair: "XAUUSD",
           direction,
           entryPrice: Number(entry),
           stopLoss: Number(sl),
@@ -88,37 +80,30 @@ export function SignalManager({
   return (
     <section id="signals" className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-white">Signal management</h2>
-        <p className="text-sm text-white/60">
-          Posting pushes to all user dashboards via Realtime.
+        <h2 className="text-xl font-bold text-ink">Signal management</h2>
+        <p className="text-sm text-ink/60">
+          Post XAUUSD (gold) signals. They push to every user dashboard via
+          Realtime.
         </p>
       </div>
 
-      <div className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 md:grid-cols-5">
+      <div className="grid gap-4 rounded-lg bg-white p-5 shadow-sm md:grid-cols-5">
         <div className="space-y-2">
-          <Label className="text-white/70">Pair</Label>
-          <Select
-            value={pair}
-            onValueChange={(v) => v && setPair(v as SignalPair)}
-          >
-            <SelectTrigger className="w-full border-white/20 bg-ink text-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="XAUUSD">XAUUSD</SelectItem>
-              <SelectItem value="XAGUSD">XAGUSD</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label className="text-ink/70">Pair</Label>
+          <div className="flex h-9 items-center rounded-md border border-border bg-canvas px-3 text-sm text-ink">
+            XAUUSD
+            <span className="ml-2 text-xs text-ink/40">gold only</span>
+          </div>
         </div>
         <div className="space-y-2">
-          <Label className="text-white/70">Direction</Label>
+          <Label className="text-ink/70">Direction</Label>
           <div className="flex gap-2">
             <Button
               type="button"
               className={
                 direction === "long"
-                  ? "bg-teal text-ink"
-                  : "bg-white/10 text-white"
+                  ? "bg-teal text-white"
+                  : "bg-canvas text-ink"
               }
               onClick={() => setDirection("long")}
             >
@@ -129,7 +114,7 @@ export function SignalManager({
               className={
                 direction === "short"
                   ? "bg-hotpink text-white"
-                  : "bg-white/10 text-white"
+                  : "bg-canvas text-ink"
               }
               onClick={() => setDirection("short")}
             >
@@ -138,25 +123,25 @@ export function SignalManager({
           </div>
         </div>
         <div className="space-y-2">
-          <Label className="text-white/70">Entry</Label>
+          <Label className="text-ink/70">Entry</Label>
           <Input
-            className="border-white/20 bg-ink text-white tabular"
+            className="border-border bg-canvas text-ink tabular"
             value={entry}
             onChange={(e) => setEntry(e.target.value)}
           />
         </div>
         <div className="space-y-2">
-          <Label className="text-white/70">Stop loss</Label>
+          <Label className="text-ink/70">Stop loss</Label>
           <Input
-            className="border-white/20 bg-ink text-white tabular"
+            className="border-border bg-canvas text-ink tabular"
             value={sl}
             onChange={(e) => setSl(e.target.value)}
           />
         </div>
         <div className="space-y-2">
-          <Label className="text-white/70">Take profit</Label>
+          <Label className="text-ink/70">Take profit</Label>
           <Input
-            className="border-white/20 bg-ink text-white tabular"
+            className="border-border bg-canvas text-ink tabular"
             value={tp}
             onChange={(e) => setTp(e.target.value)}
           />
@@ -172,9 +157,9 @@ export function SignalManager({
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
+      <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
         <table className="w-full min-w-[800px] text-left text-sm">
-          <thead className="bg-white/5 text-xs uppercase text-white/50">
+          <thead className="bg-canvas text-xs uppercase text-ink/50">
             <tr>
               <th className="px-3 py-2">Pair</th>
               <th className="px-3 py-2">Dir</th>
@@ -186,7 +171,7 @@ export function SignalManager({
           </thead>
           <tbody>
             {signals.map((s) => (
-              <tr key={s.id} className="border-t border-white/10">
+              <tr key={s.id} className="border-t border-border">
                 <td className="px-3 py-2">{s.pair}</td>
                 <td className="px-3 py-2 capitalize">{s.direction}</td>
                 <td className="px-3 py-2 tabular">
@@ -200,7 +185,7 @@ export function SignalManager({
                   {s.status === "open" ? (
                     <div className="flex gap-2">
                       <Input
-                        className="h-8 w-28 border-white/20 bg-ink text-white tabular"
+                        className="h-8 w-28 border-border bg-canvas text-ink tabular"
                         placeholder="Exit"
                         value={exitMap[s.id] ?? ""}
                         onChange={(e) =>
@@ -209,7 +194,7 @@ export function SignalManager({
                       />
                       <Button
                         size="sm"
-                        className="bg-white/10"
+                        className="bg-canvas"
                         disabled={loading}
                         onClick={() => closeSignal(s.id)}
                       >

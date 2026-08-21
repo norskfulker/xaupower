@@ -1,62 +1,68 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { AccessToast } from "@/components/auth/access-toast";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser, getOwnProfile, createClient, redirectIfMfaPending } from "@/lib/supabase/server";
+import { packageDisplayLabel, resolveUserPackageTerms } from "@/lib/package-terms";
+import type { UserPackage } from "@/lib/types";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { Suspense } from "react";
+
+function DashboardFallback() {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-28 animate-pulse rounded-lg bg-white shadow-sm"
+          />
+        ))}
+      </div>
+      <div className="grid gap-4 lg:grid-cols-5">
+        <div className="h-64 animate-pulse rounded-lg bg-white shadow-sm lg:col-span-3" />
+        <div className="h-64 animate-pulse rounded-lg bg-white shadow-sm lg:col-span-2" />
+      </div>
+    </div>
+  );
+}
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getAuthUser();
   if (!user) redirect("/login");
+  await redirectIfMfaPending("/dashboard");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("id", user.id)
-    .single();
+  const supabase = createClient();
+  const [profile, pkgRes] = await Promise.all([
+    getOwnProfile(user.id),
+    supabase
+      .from("user_packages")
+      .select("variant_snapshot, package_variants(risk_tier, packages(name))")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle(),
+  ]);
+
+  const terms = resolveUserPackageTerms(
+    (pkgRes.data ?? {}) as Pick<UserPackage, "variant_snapshot" | "package_variants">
+  );
+  const memberLabel = packageDisplayLabel(terms) ?? "Member";
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <AppHeader variant="user" email={profile?.email ?? user.email} />
-      <nav className="border-b border-border bg-white/60">
-        <div className="mx-auto flex max-w-7xl gap-4 px-4 py-2 text-sm sm:px-6">
-          <Link href="/dashboard" className="text-ink/70 hover:text-orange">
-            Overview
-          </Link>
-          <Link
-            href="/dashboard/payment"
-            className="text-ink/70 hover:text-orange"
-          >
-            Payment
-          </Link>
-          <Link
-            href="/dashboard/payout"
-            className="text-ink/70 hover:text-orange"
-          >
-            Payout
-          </Link>
-          <Link
-            href="/dashboard/transactions"
-            className="text-ink/70 hover:text-orange"
-          >
-            Transactions
-          </Link>
-        </div>
-      </nav>
+    <AppHeader
+      variant="user"
+      email={profile?.email ?? user.email}
+      fullName={profile?.full_name}
+      userId={user.id}
+      isAdmin={profile?.role === "admin"}
+      memberLabel={memberLabel}
+    >
       <Suspense fallback={null}>
         <AccessToast />
       </Suspense>
-      <main className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6">
-        {children}
-      </main>
-    </div>
+      <Suspense fallback={<DashboardFallback />}>{children}</Suspense>
+    </AppHeader>
   );
 }

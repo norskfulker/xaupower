@@ -9,6 +9,7 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
+        encode: "tokens-only",
         getAll() {
           return request.cookies.getAll();
         },
@@ -25,27 +26,26 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub ?? null;
 
   const path = request.nextUrl.pathname;
   const isDashboard = path.startsWith("/dashboard");
   const isAdmin = path.startsWith("/admin");
   const isLogin = path === "/login";
 
-  if ((isDashboard || isAdmin) && !user) {
+  if ((isDashboard || isAdmin) && !userId) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", path);
     return NextResponse.redirect(url);
   }
 
-  if (user && isLogin) {
+  if (userId && isLogin) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
-      .eq("id", user.id)
+      .eq("id", userId)
       .single();
 
     const url = request.nextUrl.clone();
@@ -53,11 +53,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAdmin) {
+  if (userId && isAdmin) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
-      .eq("id", user.id)
+      .eq("id", userId)
       .single();
 
     if (profile?.role !== "admin") {

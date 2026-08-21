@@ -12,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "XAUPower",
-  description: "XAUUSD / XAGUSD signal terminal",
+  description: "Gold-only XAUUSD signal terminal",
 };
 
 export default function RootLayout({

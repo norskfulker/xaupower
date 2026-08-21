@@ -1,39 +1,29 @@
 "use client";
 
-import { useMemo } from "react";
-import { formatUsd } from "@/lib/format";
+import { useEffect, useMemo, useState } from "react";
+import { formatUsd, RISK_LABEL, WEEKLY_PROFIT_PCT } from "@/lib/format";
 import type { Package, PackageVariant, RiskTier } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const TIERS: RiskTier[] = ["conservative", "standard", "aggressive"];
 
-function tierLabel(t: RiskTier) {
-  return t.charAt(0).toUpperCase() + t.slice(1);
-}
-
 export function PackageVariantPicker({
   packages,
   variants,
   selectedId,
   onSelect,
-  onBuy,
+  onConfirm,
+  highlightTerm = false,
 }: {
   packages: Package[];
   variants: PackageVariant[];
   selectedId?: string | null;
-  onSelect: (variant: PackageVariant) => void;
-  onBuy?: (variant: PackageVariant) => void;
+  onSelect?: (variant: PackageVariant) => void;
+  onConfirm?: (variant: PackageVariant) => void;
+  highlightTerm?: boolean;
 }) {
-  const byKey = useMemo(() => {
-    const map = new Map<string, PackageVariant>();
-    for (const v of variants) {
-      map.set(`${v.package_id}:${v.risk_tier}`, v);
-    }
-    return map;
-  }, [variants]);
-
-  const selected =
+  const initial =
     variants.find((v) => v.id === selectedId) ??
     variants.find((v) => {
       const pkg = packages.find((p) => p.id === v.package_id);
@@ -42,136 +32,144 @@ export function PackageVariantPicker({
     variants[0] ??
     null;
 
-  const selectedPkg = packages.find((p) => p.id === selected?.package_id);
+  const [packageId, setPackageId] = useState(
+    initial?.package_id ?? packages[0]?.id ?? ""
+  );
+  const [tierIndex, setTierIndex] = useState(() => {
+    const idx = TIERS.indexOf(initial?.risk_tier ?? "standard");
+    return idx >= 0 ? idx : 1;
+  });
+
+  useEffect(() => {
+    const current =
+      variants.find((v) => v.id === selectedId) ??
+      variants.find((v) => {
+        const pkg = packages.find((p) => p.id === v.package_id);
+        return pkg?.is_featured && v.risk_tier === "standard";
+      }) ??
+      variants[0];
+    if (!current) return;
+    setPackageId(current.package_id);
+    const idx = TIERS.indexOf(current.risk_tier);
+    setTierIndex(idx >= 0 ? idx : 1);
+  }, [selectedId, variants, packages]);
+
+  const selectedPkg = packages.find((p) => p.id === packageId) ?? packages[0];
+  const tier = TIERS[tierIndex] ?? "standard";
+  const selected = useMemo(
+    () =>
+      variants.find(
+        (v) => v.package_id === selectedPkg?.id && v.risk_tier === tier
+      ) ?? null,
+    [variants, selectedPkg?.id, tier]
+  );
+
+  useEffect(() => {
+    if (selected) onSelect?.(selected);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the chosen variant id changes
+  }, [selected?.id]);
+
+  const price = Number(selectedPkg?.price_usd ?? selected?.price_usd ?? 0);
+
+  function confirm() {
+    if (!selected) return;
+    onSelect?.(selected);
+    onConfirm?.(selected);
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="overflow-x-auto rounded-2xl bg-white p-4 shadow-sm">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead>
-            <tr className="text-xs uppercase tracking-wide text-muted-label">
-              <th className="px-3 py-2 font-medium">Package</th>
-              {TIERS.map((t) => (
-                <th key={t} className="px-3 py-2 font-medium">
-                  {tierLabel(t)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {packages.map((pkg) => (
-              <tr key={pkg.id} className="border-t border-border">
-                <td className="px-3 py-3 font-semibold text-ink">{pkg.name}</td>
-                {TIERS.map((tier) => {
-                  const v = byKey.get(`${pkg.id}:${tier}`);
-                  if (!v) {
-                    return (
-                      <td key={tier} className="px-3 py-3 text-muted-label">
-                        —
-                      </td>
-                    );
-                  }
-                  const active = selected?.id === v.id;
-                  return (
-                    <td key={tier} className="px-3 py-3">
-                      <button
-                        type="button"
-                        onClick={() => onSelect(v)}
-                        className={cn(
-                          "w-full rounded-xl px-3 py-3 text-left transition",
-                          active
-                            ? "bg-ink text-white"
-                            : "bg-canvas hover:bg-orange/10",
-                          pkg.is_featured &&
-                            tier === "standard" &&
-                            !active &&
-                            "ring-2 ring-orange"
-                        )}
-                      >
-                        <span className="block text-lg font-extrabold tabular">
-                          {formatUsd(v.price_usd)}
-                        </span>
-                        <span
-                          className={cn(
-                            "mt-1 block text-xs",
-                            active ? "text-white/70" : "text-muted-label"
-                          )}
-                        >
-                          Max lot {v.max_lot_size}
-                        </span>
-                      </button>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {packages.map((pkg) => {
+          const active = pkg.id === selectedPkg?.id;
+          return (
+            <button
+              key={pkg.id}
+              type="button"
+              onClick={() => setPackageId(pkg.id)}
+              className={cn(
+                "rounded-2xl px-3 py-4 text-left transition",
+                active
+                  ? "bg-orange/10 text-ink ring-1 ring-orange"
+                  : "bg-canvas text-ink/80 hover:bg-orange/10",
+                pkg.is_featured && !active && "ring-1 ring-orange/40"
+              )}
+            >
+              <span className="block text-sm font-semibold">{pkg.name}</span>
+              <span className="mt-1 block text-lg font-extrabold tabular">
+                {formatUsd(pkg.price_usd)}
+              </span>
+              <span
+                className={cn(
+                  "mt-1 block text-xs",
+                  active ? "text-ink/70" : "text-muted-label"
+                )}
+              >
+                30-day term
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {selected && selectedPkg && (
-        <div className="rounded-2xl bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-bold text-ink">
-                {selectedPkg.name} · {tierLabel(selected.risk_tier)}
-              </h3>
-              <p className="mt-1 text-sm text-muted-label">{selectedPkg.tagline}</p>
-              <p className="mt-3 text-3xl font-extrabold tabular text-ink">
-                {formatUsd(selected.price_usd)}
-                <span className="text-sm font-medium text-muted-label">
-                  {" "}
-                  / 30 days
-                </span>
-              </p>
-            </div>
-            {onBuy && (
-              <Button
-                className="bg-orange text-white hover:bg-orange/90"
-                onClick={() => onBuy(selected)}
-              >
-                Buy this plan
-              </Button>
-            )}
-          </div>
+      <div
+        className={cn(
+          "mt-6 rounded-lg bg-canvas p-4",
+          highlightTerm && "ring-2 ring-orange"
+        )}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-ink">Risk term</p>
+          <p className="text-sm font-bold text-orange">{RISK_LABEL[tier]}</p>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={2}
+          step={1}
+          value={tierIndex}
+          onChange={(e) => setTierIndex(Number(e.target.value))}
+          className="mt-4 w-full accent-orange"
+          aria-label="Risk term"
+        />
+        <div className="mt-1 flex justify-between text-xs text-muted-label">
+          <span>Nominal</span>
+          <span>Standard</span>
+          <span>Aggressive</span>
+        </div>
+      </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            <Meta
-              label="Max lot size"
-              value={String(selected.max_lot_size)}
-              hint="Bot position size cap at this tier"
-            />
-            <Meta
-              label="Bot profit target"
-              value={`${selected.profit_target_pct}%`}
-              hint="What the bot targets per move — not a user return"
-            />
-            <Meta
-              label="Bot max drawdown band"
-              value={`${selected.max_drawdown_pct}%`}
-              hint="Risk band the bot allows at this tier"
-            />
-          </div>
+      {selected && (
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <Meta label="Bot lot size" value={String(selected.max_lot_size)} />
+          <Meta
+            label="Bot drawdown"
+            value={`${selected.max_drawdown_pct}%`}
+            hint="Bot drawdown band"
+          />
+          <Meta
+            label="Bot profit target"
+            value={`${WEEKLY_PROFIT_PCT[tier]}%`}
+            hint="Bot profit target / week"
+          />
+        </div>
+      )}
 
-          <div className="mt-6">
-            <h4 className="text-sm font-semibold text-ink">Bot roadmap</h4>
-            <ol className="mt-3 space-y-2">
-              {(selected.roadmap ?? [])
-                .slice()
-                .sort((a, b) => a.step - b.step)
-                .map((step) => (
-                  <li
-                    key={step.step}
-                    className="flex gap-3 rounded-lg bg-canvas px-3 py-2 text-sm text-ink/90"
-                  >
-                    <span className="font-bold text-orange tabular">
-                      {step.step}
-                    </span>
-                    <span>{step.label}</span>
-                  </li>
-                ))}
-            </ol>
-          </div>
+      {onConfirm && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-label">
+            Amount due{" "}
+            <span className="font-extrabold tabular text-orange">
+              {formatUsd(price)}
+            </span>
+          </p>
+          <Button
+            className="bg-orange text-white hover:bg-orange/90"
+            disabled={!selected}
+            onClick={confirm}
+          >
+            Continue
+          </Button>
         </div>
       )}
     </div>
@@ -185,13 +183,13 @@ function Meta({
 }: {
   label: string;
   value: string;
-  hint: string;
+  hint?: string;
 }) {
   return (
-    <div className="rounded-xl bg-canvas p-4">
+    <div className="rounded-lg bg-canvas p-4">
       <p className="text-xs uppercase tracking-wide text-muted-label">{label}</p>
-      <p className="mt-1 text-xl font-extrabold tabular text-ink">{value}</p>
-      <p className="mt-1 text-xs text-muted-label">{hint}</p>
+      <p className="mt-1 text-xl font-extrabold tabular text-orange">{value}</p>
+      {hint && <p className="mt-1 text-xs text-muted-label">{hint}</p>}
     </div>
   );
 }

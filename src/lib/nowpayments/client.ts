@@ -86,7 +86,19 @@ export async function verifyNowPayout(batchId: string, verificationCode: string)
   return data;
 }
 
-export function mapPayCurrency(currency: "BTC" | "ETH" | "USDT"): string {
-  if (currency === "USDT") return "usdttrc20";
-  return currency.toLowerCase();
+export function mapPayCurrency(currency: string): string {
+  const map: Record<string, string> = {
+    BTC: "btc",
+    ETH: "eth",
+    BNB: "bnbbsc",
+    TRX: "trx",
+    USDT: "usdttrc20",
+    USDT_ERC20: "usdterc20",
+    USDT_BEP20: "usdtbsc",
+    USDT_TRC20: "usdttrc20",
+    USDC_ERC20: "usdc",
+    USDC_BEP20: "usdcbsc",
+    USDC_TRC20: "usdctrc20",
+  };
+  return map[currency] ?? currency.toLowerCase();
 }

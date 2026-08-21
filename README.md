@@ -1,6 +1,6 @@
 # XAUPower
 
-Signal-bot dashboard for XAUUSD / XAGUSD packages with crypto deposits, withdrawals, and a live signal feed.
+Gold-only XAUUSD signal-bot dashboard with crypto deposits, withdrawals, and a live signal feed.
 
 ## Stack
 
@@ -16,7 +16,7 @@ Signal-bot dashboard for XAUUSD / XAGUSD packages with crypto deposits, withdraw
 2. In the Supabase dashboard, copy the **service role** key into `SUPABASE_SERVICE_ROLE_KEY` (required for payment/payout webhooks).
 3. Enable Email and Google providers under Authentication.
 4. Add redirect URL: `http://localhost:3000/auth/callback`
-5. Optional: set NOWPayments sandbox keys and Twelve Data key.
+5. Optional: set NOWPayments sandbox keys. The ticker reads a server-side XAUUSD cache (refresh-prices Edge Function).
 6. Promote an admin after signup:
 
 ```sql

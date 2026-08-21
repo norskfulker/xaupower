@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatUsd } from "@/lib/format";
-import type { Payment } from "@/lib/types";
+import { formatUsd, PAYMENT_KIND_LABEL } from "@/lib/format";
+import { paymentPackageLabel } from "@/lib/package-terms";
+import { formatRail } from "@/lib/wallets";
 import { cn } from "@/lib/utils";
+import type { Payment } from "@/lib/types";
 
 export function PaymentsTable({ payments }: { payments: Payment[] }) {
   const [status, setStatus] = useState<string>("all");
@@ -15,9 +17,9 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold text-white">Payments</h2>
+        <h2 className="text-xl font-bold text-ink">Payments</h2>
         <select
-          className="rounded-lg border border-white/20 bg-ink px-2 py-1 text-sm text-white"
+          className="rounded-lg border border-border bg-canvas px-2 py-1 text-sm text-ink"
           value={status}
           onChange={(e) => setStatus(e.target.value)}
         >
@@ -32,11 +34,13 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
           <option value="expired">Expired</option>
         </select>
       </div>
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
+      <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
         <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-white/5 text-xs uppercase text-white/50">
+          <thead className="bg-canvas text-xs uppercase text-ink/50">
             <tr>
               <th className="px-3 py-2">Amount</th>
+              <th className="px-3 py-2">Type</th>
+              <th className="px-3 py-2">Package terms</th>
               <th className="px-3 py-2">Currency</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2">Created</th>
@@ -53,12 +57,18 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
                 <tr
                   key={p.id}
                   className={cn(
-                    "border-t border-white/10",
+                    "border-t border-border",
                     stuck && "bg-hotpink/10"
                   )}
                 >
                   <td className="px-3 py-2 tabular">{formatUsd(p.amount_usd)}</td>
-                  <td className="px-3 py-2">{p.currency}</td>
+                  <td className="px-3 py-2">
+                    {PAYMENT_KIND_LABEL[p.kind ?? "package"]}
+                  </td>
+                  <td className="px-3 py-2 text-ink/70">
+                    {paymentPackageLabel(p) ?? "—"}
+                  </td>
+                  <td className="px-3 py-2">{formatRail(p.currency)}</td>
                   <td className="px-3 py-2 capitalize">
                     {p.status.replace("_", " ")}
                     {stuck && (
@@ -67,10 +77,10 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-white/60">
+                  <td className="px-3 py-2 text-ink/60">
                     {new Date(p.created_at).toLocaleString()}
                   </td>
-                  <td className="px-3 py-2 text-xs tabular text-white/50">
+                  <td className="px-3 py-2 text-xs tabular text-ink/50">
                     {p.nowpayments_payment_id ?? "—"}
                   </td>
                 </tr>

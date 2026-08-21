@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatUsd } from "@/lib/format";
-import type { Payout } from "@/lib/types";
+import { formatRail } from "@/lib/wallets";
 import { cn } from "@/lib/utils";
+import type { Payout } from "@/lib/types";
 
 export function PayoutReviewQueue({
   initialQueue,
@@ -122,9 +123,13 @@ export function PayoutReviewQueue({
     <section id="payouts" className="space-y-4">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white">Payout review queue</h2>
-          <p className="text-sm text-white/60">
-            Approve sends to NOWPayments after review. Reject restores balance.
+          <h2 className="text-xl font-bold text-ink">
+            Trading balance payout review
+          </h2>
+          <p className="text-sm text-ink/60">
+            These are withdrawals of VPS bot trading capital only. Approve to
+            send, or reject with a note to restore the user balance. Signal
+            purchases do not create a payout.
           </p>
         </div>
         <span className="rounded-full bg-orange/20 px-3 py-1 text-xs font-semibold text-orange">
@@ -133,7 +138,7 @@ export function PayoutReviewQueue({
       </div>
 
       {sortedQueue.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/60">
+        <div className="rounded-lg bg-white p-6 text-sm text-muted-label shadow-sm">
           Queue is clear. New withdrawal requests will appear here.
         </div>
       ) : (
@@ -141,27 +146,27 @@ export function PayoutReviewQueue({
           {sortedQueue.map((p) => (
             <li
               key={p.id}
-              className="rounded-2xl border border-orange/30 bg-white/5 p-4"
+              className="rounded-lg border border-orange/30 bg-white p-4"
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="font-semibold tabular text-gold">
-                    {formatUsd(p.amount_usd)} · {p.currency}
+                  <p className="font-semibold tabular text-orange">
+                    {formatUsd(p.amount_usd)} · {formatRail(p.currency)}
                   </p>
-                  <p className="mt-1 text-sm text-white/70">
+                  <p className="mt-1 text-sm text-ink/70">
                     {(p.profiles as { email?: string } | null)?.email ??
                       p.user_id.slice(0, 8)}
                   </p>
-                  <p className="mt-1 break-all text-xs tabular text-white/50">
+                  <p className="mt-1 break-all text-xs tabular text-ink/50">
                     {p.destination_address}
                   </p>
-                  <p className="mt-1 text-xs text-white/40">
+                  <p className="mt-1 text-xs text-ink/40">
                     Requested {new Date(p.requested_at).toLocaleString()}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    className="bg-teal text-ink hover:bg-teal/90"
+                    className="bg-teal text-white hover:bg-teal/90"
                     disabled={loading === p.id}
                     onClick={() => approve(p.id)}
                   >
@@ -179,12 +184,12 @@ export function PayoutReviewQueue({
               </div>
 
               {rejectId === p.id && (
-                <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
-                  <Label className="text-white/80">Admin note (required)</Label>
+                <div className="mt-4 space-y-2 border-t border-border pt-4">
+                  <Label className="text-ink/80">Admin note (required)</Label>
                   <Input
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="bg-ink text-white"
+                    className="bg-canvas text-ink"
                     placeholder="Why this payout is rejected"
                   />
                   <Button
@@ -197,14 +202,14 @@ export function PayoutReviewQueue({
               )}
 
               {verifyId === p.id && (
-                <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
-                  <Label className="text-white/80">
+                <div className="mt-4 space-y-2 border-t border-border pt-4">
+                  <Label className="text-ink/80">
                     NOWPayments 2FA verification code
                   </Label>
                   <Input
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    className="bg-ink text-white"
+                    className="bg-canvas text-ink"
                   />
                   <Button
                     className="bg-orange text-white hover:bg-orange/90"
@@ -221,7 +226,7 @@ export function PayoutReviewQueue({
 
       <button
         type="button"
-        className="text-sm text-white/50 hover:text-white/80"
+        className="text-sm text-ink/50 hover:text-ink/80"
         onClick={() => setShowReviewed((v) => !v)}
       >
         {showReviewed ? "Hide" : "Show"} reviewed payouts ({reviewed.length})
@@ -233,17 +238,17 @@ export function PayoutReviewQueue({
             <li
               key={p.id}
               className={cn(
-                "rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm"
+                "rounded-lg border border-border bg-white px-4 py-3 text-sm"
               )}
             >
               <span className="tabular font-medium">
-                {formatUsd(p.amount_usd)} {p.currency}
+                {formatUsd(p.amount_usd)} {formatRail(p.currency)}
               </span>
-              <span className="ml-3 capitalize text-white/50">
+              <span className="ml-3 capitalize text-ink/50">
                 {p.status.replace("_", " ")}
               </span>
               {p.admin_note && (
-                <p className="mt-1 text-xs text-white/40">{p.admin_note}</p>
+                <p className="mt-1 text-xs text-ink/40">{p.admin_note}</p>
               )}
             </li>
           ))}

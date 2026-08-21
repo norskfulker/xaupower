@@ -34,7 +34,7 @@ export function TransactionsTable({
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
+      <div className="rounded-lg bg-white shadow-sm p-8 text-center">
         <h2 className="text-lg font-bold text-ink">No transactions yet</h2>
         <p className="mt-2 text-sm text-muted-label">
           Deposits, payouts, and package purchases will show up here.
@@ -50,10 +50,10 @@ export function TransactionsTable({
           placeholder="Filter description"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          className="max-w-xs bg-white"
+          className="max-w-xs border-border bg-white text-ink"
         />
         <select
-          className="h-8 rounded-lg border border-input bg-white px-2 text-sm"
+          className="h-10 rounded-lg border border-border bg-white px-2 text-sm text-ink"
           value={type}
           onChange={(e) => setType(e.target.value)}
         >
@@ -64,7 +64,7 @@ export function TransactionsTable({
           <option value="signal_settlement">Signal settlement</option>
         </select>
         <select
-          className="h-8 rounded-lg border border-input bg-white px-2 text-sm"
+          className="h-10 rounded-lg border border-border bg-white px-2 text-sm text-ink"
           value={sort}
           onChange={(e) => setSort(e.target.value as typeof sort)}
         >
@@ -74,7 +74,7 @@ export function TransactionsTable({
         </select>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="bg-canvas text-xs uppercase tracking-wide text-muted-label">
             <tr>

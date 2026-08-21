@@ -1,7 +1,8 @@
+import { sendUserPayoutNotice } from "@/lib/email";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { validateCryptoAddress } from "@/lib/address-validation";
-import type { CryptoCurrency } from "@/lib/types";
+import { isPaymentRail } from "@/lib/wallets";
 
 export async function POST(request: Request) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as {
       amountUsd?: number;
-      currency?: CryptoCurrency;
+      currency?: string;
       destinationAddress?: string;
     };
 
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Enter a valid amount" }, { status: 400 });
     }
 
-    if (!body.currency || !["BTC", "ETH", "USDT"].includes(body.currency)) {
+    if (!body.currency || !isPaymentRail(body.currency)) {
       return NextResponse.json({ error: "Invalid currency" }, { status: 400 });
     }
 
@@ -65,6 +66,26 @@ export async function POST(request: Request) {
         { error: "Could not request payout" },
         { status: 500 }
       );
+    }
+
+    try {
+      const { data: prefsRow } = await supabase
+        .from("profiles")
+        .select("notification_preferences")
+        .eq("id", user.id)
+        .single();
+      const prefs = prefsRow?.notification_preferences as
+        | { email_payouts?: boolean }
+        | null;
+      if (prefs?.email_payouts !== false && user.email) {
+        await sendUserPayoutNotice({
+          to: user.email,
+          amountUsd: amount,
+          currency: body.currency,
+        });
+      }
+    } catch (emailErr) {
+      console.error("user payout notice failed", emailErr);
     }
 
     return NextResponse.json({ payoutId });

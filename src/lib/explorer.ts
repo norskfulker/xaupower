@@ -1,4 +1,5 @@
-import type { CryptoCurrency } from "@/lib/types";
+import type { CryptoCurrency } from "@/lib/wallets";
+import { railNetwork } from "@/lib/wallets";
 
 export function explorerTxUrl(
   currency: CryptoCurrency,
@@ -9,6 +10,15 @@ export function explorerTxUrl(
   if (currency === "BTC") {
     return `https://blockchair.com/bitcoin/transaction/${hash}`;
   }
-  // ETH and USDT (ERC-20 / common admin default)
+  if (
+    currency === "BNB" ||
+    currency === "USDT_BEP20" ||
+    currency === "USDC_BEP20"
+  ) {
+    return `https://bscscan.com/tx/${hash}`;
+  }
+  if (railNetwork(currency) === "TRC20") {
+    return `https://tronscan.org/#/transaction/${hash}`;
+  }
   return `https://etherscan.io/tx/${hash}`;
 }

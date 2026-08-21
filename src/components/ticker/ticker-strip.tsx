@@ -2,26 +2,44 @@
 
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/format";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  formatAsOf,
+  isPriceStale,
+  type PriceQuote,
+} from "@/lib/prices";
+import { createClient } from "@/lib/supabase/client";
+import { useEffect, useRef, useState } from "react";
 
 type Tick = {
-  symbol: "XAUUSD" | "XAGUSD";
-  price: number;
+  price: number | null;
+  fetchedAt: string | null;
   direction: "up" | "down" | "flat";
   flash: boolean;
 };
 
-const FALLBACK: Record<"XAUUSD" | "XAGUSD", number> = {
-  XAUUSD: 2341.2,
-  XAGUSD: 27.84,
-};
+function initialTick(quotes: PriceQuote[]): Tick {
+  const q = quotes.find((row) => row.pair === "XAUUSD");
+  return {
+    price: q ? Number(q.price) : null,
+    fetchedAt: q?.fetched_at ?? null,
+    direction: "flat",
+    flash: false,
+  };
+}
 
-export function TickerStrip({ className }: { className?: string }) {
-  const [ticks, setTicks] = useState<Tick[]>([
-    { symbol: "XAUUSD", price: FALLBACK.XAUUSD, direction: "flat", flash: false },
-    { symbol: "XAGUSD", price: FALLBACK.XAGUSD, direction: "flat", flash: false },
-  ]);
-  const prev = useRef(FALLBACK);
+export function TickerStrip({
+  className,
+  tone = "dark",
+  initialQuotes = [],
+}: {
+  className?: string;
+  tone?: "dark" | "light";
+  initialQuotes?: PriceQuote[];
+}) {
+  const [tick, setTick] = useState<Tick>(() => initialTick(initialQuotes));
+  const prev = useRef<number | null>(
+    Number(initialQuotes.find((q) => q.pair === "XAUUSD")?.price) || null
+  );
   const reduceMotion = useRef(false);
 
   useEffect(() => {
@@ -30,82 +48,103 @@ export function TickerStrip({ className }: { className?: string }) {
     ).matches;
   }, []);
 
-  const applyPrices = useCallback((xau: number, xag: number) => {
-    const next: Tick[] = (
-      [
-        ["XAUUSD", xau],
-        ["XAGUSD", xag],
-      ] as const
-    ).map(([symbol, price]) => {
-      const old = prev.current[symbol];
-      const direction = price > old ? "up" : price < old ? "down" : "flat";
-      return { symbol, price, direction, flash: direction !== "flat" };
-    });
-    prev.current = { XAUUSD: xau, XAGUSD: xag };
-    setTicks(next);
-
-    if (!reduceMotion.current) {
-      const t = window.setTimeout(() => {
-        setTicks((cur) => cur.map((c) => ({ ...c, flash: false })));
-      }, 600);
-      return () => window.clearTimeout(t);
-    }
-    setTicks((cur) => cur.map((c) => ({ ...c, flash: false })));
-  }, []);
-
   useEffect(() => {
+    const supabase = createClient();
     let cancelled = false;
 
-    async function poll() {
-      try {
-        const res = await fetch("/api/prices");
-        if (!res.ok) throw new Error("price fetch failed");
-        const data = (await res.json()) as {
-          XAUUSD: number;
-          XAGUSD: number;
-        };
-        if (!cancelled) applyPrices(data.XAUUSD, data.XAGUSD);
-      } catch {
-        if (!cancelled) {
-          applyPrices(
-            FALLBACK.XAUUSD + (Math.random() - 0.5) * 2,
-            FALLBACK.XAGUSD + (Math.random() - 0.5) * 0.1
-          );
-        }
+    function applyQuote(quote: PriceQuote) {
+      if (quote.pair !== "XAUUSD") return;
+      const nextPrice = Number(quote.price);
+      if (!Number.isFinite(nextPrice) || nextPrice <= 0) return;
+      const old = prev.current;
+      const direction =
+        old != null && nextPrice > old
+          ? "up"
+          : old != null && nextPrice < old
+            ? "down"
+            : "flat";
+      prev.current = nextPrice;
+
+      setTick({
+        price: nextPrice,
+        fetchedAt: quote.fetched_at,
+        direction,
+        flash: direction !== "flat" && !reduceMotion.current,
+      });
+
+      if (!reduceMotion.current && direction !== "flat") {
+        window.setTimeout(() => {
+          setTick((cur) => ({ ...cur, flash: false }));
+        }, 600);
       }
     }
 
-    poll();
-    const id = window.setInterval(poll, 30_000);
+    async function load() {
+      const { data } = await supabase
+        .from("price_cache")
+        .select("pair, price, change_pct, fetched_at")
+        .eq("pair", "XAUUSD")
+        .maybeSingle();
+      if (cancelled || !data) return;
+      prev.current = Number(data.price);
+      applyQuote(data as PriceQuote);
+    }
+
+    void load();
+
+    const channel = supabase
+      .channel(`price-cache-${crypto.randomUUID()}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "price_cache",
+          filter: "pair=eq.XAUUSD",
+        },
+        (payload) => {
+          const row = (payload.new ?? payload.old) as PriceQuote | undefined;
+          if (row?.pair && row.price != null) applyQuote(row);
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
-      window.clearInterval(id);
+      supabase.removeChannel(channel);
     };
-  }, [applyPrices]);
+  }, []);
+
+  const muted = tone === "light" ? "text-muted-label" : "text-white/50";
+  const stale = tick.fetchedAt ? isPriceStale(tick.fetchedAt) : true;
+  const asOf = tick.fetchedAt ? formatAsOf(tick.fetchedAt) : null;
 
   return (
-    <div className={cn("flex flex-wrap items-center gap-4", className)}>
-      {ticks.map((tick) => (
-        <div
-          key={tick.symbol}
-          className={cn(
-            "rounded-md px-2 py-1 text-sm font-semibold tabular transition-colors duration-[600ms]",
-            tick.direction === "up" && "text-orange",
-            tick.direction === "down" && "text-teal",
-            tick.direction === "flat" && "text-white/80",
-            tick.flash &&
-              tick.direction === "up" &&
-              "bg-orange/15",
-            tick.flash &&
-              tick.direction === "down" &&
-              "bg-teal/15",
-            reduceMotion.current && tick.flash && "duration-0"
-          )}
-        >
-          <span className="mr-2 text-white/50">{tick.symbol}</span>
-          {formatPrice(tick.price, tick.symbol === "XAUUSD" ? 2 : 2)}
-        </div>
-      ))}
+    <div className={cn("inline-flex items-center", className)}>
+      <div
+        className={cn(
+          "rounded-md px-2 py-1 text-sm font-semibold tabular transition-colors duration-[600ms]",
+          tick.price == null
+            ? muted
+            : tick.direction === "up"
+              ? "text-orange"
+              : tick.direction === "down"
+                ? "text-teal"
+                : tone === "light"
+                  ? "text-ink/70"
+                  : "text-white/80",
+          tick.flash && tick.direction === "up" && "bg-orange/15",
+          tick.flash && tick.direction === "down" && "bg-teal/15"
+        )}
+      >
+        <span className={cn("mr-2", muted)}>XAUUSD</span>
+        {tick.price == null ? "—" : formatPrice(tick.price, 2)}
+        {tick.price != null && stale && asOf && (
+          <span className={cn("ml-2 text-[10px] font-medium uppercase", muted)}>
+            delayed · as of {asOf}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

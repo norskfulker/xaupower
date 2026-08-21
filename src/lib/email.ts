@@ -1,5 +1,46 @@
 import { Resend } from "resend";
 
+export async function sendUserDepositNotice(input: {
+  to: string;
+  amountUsd: number;
+  currency: string;
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return;
+  const resend = new Resend(apiKey);
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL ?? "XAUPower <onboarding@resend.dev>",
+    to: input.to,
+    subject: "Deposit submitted for review",
+    text: [
+      "We received your deposit submission.",
+      "",
+      `Amount (expected): $${input.amountUsd.toFixed(2)} ${input.currency}`,
+      "An admin will review the transaction hash before it is applied.",
+    ].join("\n"),
+  });
+}
+
+export async function sendUserPayoutNotice(input: {
+  to: string;
+  amountUsd: number;
+  currency: string;
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return;
+  const resend = new Resend(apiKey);
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL ?? "XAUPower <onboarding@resend.dev>",
+    to: input.to,
+    subject: "Payout requested",
+    text: [
+      "Your payout request was submitted.",
+      "",
+      `Amount: $${input.amountUsd.toFixed(2)} ${input.currency}`,
+      "An admin will review it before funds are sent.",
+    ].join("\n"),
+  });
+}
 export async function sendAdminDepositAlert(input: {
   userEmail: string;
   packageLabel: string;

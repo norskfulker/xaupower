@@ -1,20 +1,33 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { isMfaChallengePending } from "@/lib/supabase/mfa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [fullName, setFullName] = useState("");
+  const [mode, setMode] = useState<"signin" | "signup">(
+    searchParams.get("email") ? "signup" : "signin"
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const preset = searchParams.get("email");
+    if (preset) {
+      setEmail(preset);
+      setMode("signup");
+    }
+  }, [searchParams]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -24,9 +37,14 @@ export function LoginForm() {
 
     try {
       if (mode === "signup") {
+        if (!fullName.trim()) {
+          setError("Enter your full name");
+          return;
+        }
         const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          options: { data: { full_name: fullName.trim() } },
         });
         if (signUpError) {
           setError(signUpError.message);
@@ -52,13 +70,30 @@ export function LoginForm() {
         return;
       }
 
+      const next = searchParams.get("next");
+      if (await isMfaChallengePending(supabase)) {
+        router.replace(
+          `/auth/mfa?next=${encodeURIComponent(
+            next && next.startsWith("/") ? next : "/dashboard"
+          )}`
+        );
+        router.refresh();
+        return;
+      }
+
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, full_name")
         .eq("id", user.id)
         .single();
 
-      const next = searchParams.get("next");
+      if (mode === "signup" && fullName.trim()) {
+        await supabase
+          .from("profiles")
+          .update({ full_name: fullName.trim() })
+          .eq("id", user.id);
+      }
+
       if (profile?.role === "admin") {
         router.replace("/admin");
       } else if (next && next.startsWith("/dashboard")) {
@@ -85,18 +120,39 @@ export function LoginForm() {
     if (oauthError) setError(oauthError.message);
   }
 
+  const reduce = useReducedMotion();
+
   return (
-    <div className="w-full max-w-md space-y-6">
+    <motion.div
+      className="w-full max-w-md space-y-6"
+      initial={reduce ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div>
         <h1 className="text-2xl font-bold text-ink">
           {mode === "signin" ? "Sign in" : "Create account"}
         </h1>
         <p className="mt-1 text-sm text-muted-label">
-          Access your XAUUSD / XAGUSD signal terminal
+          Access your gold (XAUUSD) signal terminal
         </p>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
+        {mode === "signup" && (
+          <div className="space-y-2">
+            <Label htmlFor="full-name">Full name</Label>
+            <Input
+              id="full-name"
+              type="text"
+              autoComplete="name"
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="bg-white"
+            />
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -181,6 +237,6 @@ export function LoginForm() {
           </>
         )}
       </p>
-    </div>
+    </motion.div>
   );
 }

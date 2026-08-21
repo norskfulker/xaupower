@@ -43,6 +43,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (body.pair !== "XAUUSD") {
+      return NextResponse.json(
+        { error: "XAUPower posts XAUUSD (gold) signals only" },
+        { status: 400 }
+      );
+    }
+
     const { data, error } = await supabase
       .from("signals")
       .insert({

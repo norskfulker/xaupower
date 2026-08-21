@@ -9,9 +9,13 @@ import Link from "next/link";
 export function PackagesGrid({
   packages,
   onBuy,
+  ctaHref,
+  ctaLabel = "Buy package",
 }: {
   packages: Package[];
   onBuy?: (pkg: Package) => void;
+  ctaHref?: string;
+  ctaLabel?: string;
 }) {
   return (
     <div className="grid gap-6 md:grid-cols-3">
@@ -19,7 +23,7 @@ export function PackagesGrid({
         <div
           key={pkg.id}
           className={cn(
-            "relative rounded-2xl bg-white p-6 shadow-sm",
+            "relative rounded-2xl bg-white p-6 text-center shadow-sm",
             pkg.is_featured &&
               "z-10 -rotate-1 border-2 border-orange shadow-md"
           )}
@@ -37,7 +41,7 @@ export function PackagesGrid({
           </p>
           <ul className="mt-4 space-y-2 text-sm text-ink/80">
             {(pkg.features ?? []).map((f) => (
-              <li key={f} className="flex gap-2">
+              <li key={f} className="flex justify-center gap-2">
                 <span className="text-teal">✓</span>
                 <span>{f}</span>
               </li>
@@ -52,12 +56,12 @@ export function PackagesGrid({
             </Button>
           ) : (
             <Link
-              href={`/dashboard/payment?package=${pkg.id}`}
+              href={ctaHref ?? `/dashboard/payment?package=${pkg.id}`}
               className={cn(
                 "mt-6 inline-flex h-9 w-full items-center justify-center rounded-lg bg-orange text-sm font-medium text-white hover:bg-orange/90"
               )}
             >
-              Buy package
+              {ctaLabel}
             </Link>
           )}
         </div>

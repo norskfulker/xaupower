@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isMfaChallengePending } from "@/lib/supabase/mfa";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -16,6 +17,12 @@ export async function GET(request: Request) {
 
       let redirectPath = next;
       if (user) {
+        if (await isMfaChallengePending(supabase)) {
+          const dest = new URL("/auth/mfa", origin);
+          dest.searchParams.set("next", next);
+          return NextResponse.redirect(dest);
+        }
+
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")

@@ -6,41 +6,41 @@
 
 @layer base {
   :root {
-    /* XAUPower design tokens (HSL channels) */
-    --ink: 20 20% 5%;
-    --canvas: 40 60% 96%;
-    --orange: 20 100% 55%;
-    --gold: 45 100% 63%;
-    --teal: 165 100% 43%;
-    --hotpink: 348 100% 62%;
-    --muted-label: 30 15% 60%;
+    /* Burgundy Floor — wine, cool paper, bronze */
+    --ink: 350 40% 12%;
+    --canvas: 340 12% 95%;
+    --orange: 351 60% 34%;
+    --gold: 37 40% 61%;
+    --teal: 159 54% 36%;
+    --hotpink: 351 55% 48%;
+    --muted-label: 340 8% 45%;
 
     /* shadcn mapped to brand */
-    --background: 40 60% 96%;
-    --foreground: 20 20% 5%;
+    --background: 340 12% 95%;
+    --foreground: 350 40% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 20 20% 5%;
+    --card-foreground: 350 40% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 20 20% 5%;
-    --primary: 20 100% 55%;
+    --popover-foreground: 350 40% 12%;
+    --primary: 351 60% 34%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 40 30% 92%;
-    --secondary-foreground: 20 20% 5%;
-    --muted: 40 20% 90%;
-    --muted-foreground: 30 15% 45%;
-    --accent: 45 100% 63%;
-    --accent-foreground: 20 20% 5%;
-    --destructive: 348 100% 62%;
+    --secondary: 340 12% 92%;
+    --secondary-foreground: 350 40% 12%;
+    --muted: 340 10% 90%;
+    --muted-foreground: 340 8% 42%;
+    --accent: 37 40% 61%;
+    --accent-foreground: 350 40% 12%;
+    --destructive: 351 55% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 20% 88%;
-    --input: 30 20% 88%;
-    --ring: 20 100% 55%;
+    --border: 340 10% 86%;
+    --input: 340 10% 86%;
+    --ring: 351 60% 34%;
     --radius: 1rem;
-    --chart-1: 20 100% 55%;
-    --chart-2: 165 100% 43%;
-    --chart-3: 45 100% 63%;
-    --chart-4: 348 100% 62%;
-    --chart-5: 30 15% 60%;
+    --chart-1: 351 60% 34%;
+    --chart-2: 159 54% 36%;
+    --chart-3: 37 40% 61%;
+    --chart-4: 351 55% 48%;
+    --chart-5: 340 8% 45%;
   }
 
   * {
@@ -55,10 +55,61 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  input[type="range"] {
+    accent-color: hsl(var(--orange));
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .marquee-track {
+    animation: landing-marquee 36s linear infinite;
+  }
+
+  .join-toast {
+    animation: join-toast 12s ease-in-out infinite;
+  }
+}
+
+@keyframes landing-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes join-toast {
+  0%,
+  12% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  18%,
+  78% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  88%,
+  100% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .join-toast {
+    animation: none;
+  }
+
+  .join-toast {
+    opacity: 1;
+    transform: none;
   }
 }

@@ -1,116 +1,65 @@
-import { createClient } from "@/lib/supabase/server";
-import { formatUsd, daysRemaining } from "@/lib/format";
+import { getAuthUser, createClient, getPriceQuotes } from "@/lib/supabase/server";
+import { formatUsd, daysRemaining, RISK_LABEL, formatPrice } from "@/lib/format";
 import { SignalFeed } from "@/components/signals/signal-feed";
-import {
-  DailyPnlChart,
-  PortfolioGrowthChart,
-} from "@/components/charts/dashboard-charts";
-import { DashboardFinanceSection } from "@/components/dashboard/dashboard-finance-section";
-import type {
-  DepositAddress,
-  Package,
-  PackageVariant,
-  Payment,
-  Payout,
-  Signal,
-  WalletBalance,
-} from "@/lib/types";
-import Link from "next/link";
+import { PriceSparkline } from "@/components/charts/dashboard-charts";
+import { StatCard } from "@/components/ui/stat-card";
+import type { Signal, UserPackage, WalletBalance } from "@/lib/types";
+import { packageDisplayLabel, resolveUserPackageTerms } from "@/lib/package-terms";
 import { format, subDays } from "date-fns";
+import { Banknote, Boxes, Cpu, Radio, TrendingUp, Wallet } from "lucide-react";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function DashboardPage() {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   const [
-    packagesRes,
-    variantsRes,
     userPkgRes,
     walletRes,
     signalsRes,
-    snapshotsRes,
-    payoutsRes,
-    paymentsRes,
-    addressesRes,
     closedSignalsRes,
+    quotes,
   ] = await Promise.all([
-    supabase.from("packages").select("*").eq("is_active", true).order("price_usd"),
-    supabase.from("package_variants").select("*"),
     supabase
       .from("user_packages")
-      .select("*, package_variants(*, packages(*))")
+      .select(
+        "purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, packages(name))"
+      )
       .eq("user_id", user!.id)
       .eq("status", "active")
       .maybeSingle(),
     supabase
       .from("wallet_balances")
-      .select("*")
+      .select("available_usd, pending_usd")
       .eq("user_id", user!.id)
       .maybeSingle(),
     supabase
       .from("signals")
-      .select("*")
+      .select(
+        "id, pair, direction, entry_price, stop_loss, take_profit, status, pnl_usd, opened_at, closed_at, created_by"
+      )
       .order("opened_at", { ascending: false })
       .limit(50),
-    supabase
-      .from("portfolio_snapshots")
-      .select("*")
-      .eq("user_id", user!.id)
-      .order("snapshot_at", { ascending: true })
-      .limit(30),
-    supabase
-      .from("payouts")
-      .select("*")
-      .eq("user_id", user!.id)
-      .order("requested_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("payments")
-      .select("*")
-      .eq("user_id", user!.id)
-      .order("created_at", { ascending: false })
-      .limit(20),
-    supabase.from("deposit_addresses").select("*").eq("is_active", true),
     supabase
       .from("signals")
       .select("pnl_usd, closed_at")
       .eq("status", "closed")
       .gte("closed_at", subDays(new Date(), 7).toISOString()),
+    getPriceQuotes(),
   ]);
 
-  const packages = (packagesRes.data ?? []) as Package[];
-  const variants = (variantsRes.data ?? []).map((v) => ({
-    ...v,
-    roadmap: Array.isArray(v.roadmap) ? v.roadmap : [],
-  })) as PackageVariant[];
   const activePkg = userPkgRes.data;
-  const wallet = walletRes.data as WalletBalance | null;
+  const wallet = walletRes.data as Pick<
+    WalletBalance,
+    "available_usd" | "pending_usd"
+  > | null;
   const signals = (signalsRes.data ?? []) as Signal[];
-  const payouts = (payoutsRes.data ?? []) as Payout[];
-  const payments = (paymentsRes.data ?? []) as Payment[];
-  const addresses = (addressesRes.data ?? []) as DepositAddress[];
-  const openCount = signals.filter((s) => s.status === "open").length;
 
   const feedPnl7d = (closedSignalsRes.data ?? []).reduce(
     (sum, s) => sum + Number(s.pnl_usd ?? 0),
     0
   );
-
-  const portfolioValue =
-    Number(wallet?.available_usd ?? 0) + Number(wallet?.pending_usd ?? 0);
-
-  const growthData =
-    snapshotsRes.data && snapshotsRes.data.length > 0
-      ? snapshotsRes.data.map((s) => ({
-          date: format(new Date(s.snapshot_at), "MMM d"),
-          value: Number(s.value_usd),
-        }))
-      : Array.from({ length: 7 }).map((_, i) => ({
-          date: format(subDays(new Date(), 6 - i), "MMM d"),
-          value: portfolioValue || 1000 + i * 40,
-        }));
 
   const dailyPnl = Array.from({ length: 7 }).map((_, i) => {
     const day = subDays(new Date(), 6 - i);
@@ -125,80 +74,172 @@ export default async function DashboardPage() {
   });
 
   const daysLeft = daysRemaining(activePkg?.expires_at);
-  const activeVariant = activePkg?.package_variants as
-    | (PackageVariant & { packages?: Package })
-    | undefined;
-  const packageLabel = activeVariant
-    ? `${activeVariant.packages?.name ?? "Package"} ${activeVariant.risk_tier} · ${daysLeft ?? 0} days left`
-    : null;
+  const terms = resolveUserPackageTerms(
+    (activePkg ?? {}) as Pick<UserPackage, "variant_snapshot" | "package_variants">
+  );
+  const name = packageDisplayLabel(terms);
+  const quote = quotes.find((q) => q.pair === "XAUUSD");
+  const change = Number(quote?.change_pct ?? 0);
 
   return (
-    <>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl bg-ink p-5 text-white">
-          <p className="text-xs uppercase tracking-wide text-white/60">
-            Portfolio value
-          </p>
-          <p className="mt-2 text-3xl font-extrabold tabular text-orange">
-            {formatUsd(portfolioValue)}
-          </p>
-        </div>
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-muted-label">
-            Feed performance
-          </p>
-          <p
-            className={`mt-2 text-3xl font-extrabold tabular ${
-              feedPnl7d >= 0 ? "text-teal" : "text-hotpink"
-            }`}
-          >
-            {formatUsd(feedPnl7d)}
-          </p>
-          <p className="mt-1 text-xs text-muted-label">Last 7 days</p>
-        </div>
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-muted-label">
-            Active package
-          </p>
-          {packageLabel ? (
-            <p className="mt-2 text-lg font-bold text-ink">{packageLabel}</p>
-          ) : (
-            <div className="mt-2">
-              <p className="text-lg font-bold text-ink">No active package</p>
-              <Link
-                href="/dashboard/payment"
-                className="mt-2 inline-block text-sm font-medium text-orange"
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Available balance"
+          value={formatUsd(wallet?.available_usd)}
+          hint="Available for withdrawal"
+          icon={Banknote}
+        />
+        <StatCard
+          label="Active package"
+          value={name ?? "None"}
+          hint={
+            name
+              ? `${daysLeft ?? 0} days remaining`
+              : "No active access period"
+          }
+          icon={Boxes}
+        />
+        <StatCard
+          label="Feed performance"
+          value={`${feedPnl7d >= 0 ? "+" : ""}${formatUsd(feedPnl7d)}`}
+          hint="7-day feed performance"
+          icon={TrendingUp}
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-5">
+        <div className="rounded-lg bg-white p-5 shadow-sm lg:col-span-3">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-label">
+                XAUUSD
+              </p>
+              <p className="mt-2 text-4xl font-extrabold tabular text-orange">
+                {quote ? formatPrice(quote.price, 2) : "—"}
+              </p>
+              <p
+                className={`mt-1 text-sm tabular ${
+                  change >= 0 ? "text-teal" : "text-hotpink"
+                }`}
               >
-                Choose a plan
-              </Link>
+                {change >= 0 ? "+" : ""}
+                {change.toFixed(2)}%
+              </p>
             </div>
+            <span className="rounded-lg bg-orange/10 px-2.5 py-1 text-[11px] font-semibold text-orange">
+              Live
+            </span>
+          </div>
+          <div className="mt-4">
+            <PriceSparkline data={dailyPnl} />
+            <p className="mt-1 text-[11px] text-muted-label">
+              Sparkline shows 7-day signal-feed P&amp;L, not a personal yield.
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-lg bg-white p-5 shadow-sm lg:col-span-2">
+          <p className="text-xs uppercase tracking-wide text-muted-label">
+            Package details
+          </p>
+          {terms ? (
+            <dl className="mt-4 space-y-3 text-sm">
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-label">Package</dt>
+                <dd className="font-semibold text-ink">{terms.package_name}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-label">Risk tier</dt>
+                <dd className="font-semibold text-ink">
+                  {RISK_LABEL[terms.risk_tier]}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-label">Start</dt>
+                <dd className="tabular text-ink">
+                  {activePkg?.purchased_at
+                    ? format(new Date(activePkg.purchased_at), "d MMM yyyy")
+                    : "—"}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-label">End</dt>
+                <dd className="tabular text-ink">
+                  {activePkg?.expires_at
+                    ? format(new Date(activePkg.expires_at), "d MMM yyyy")
+                    : "—"}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4 border-t border-border pt-3">
+                <dt className="text-muted-label">Signal delivery</dt>
+                <dd className="font-semibold text-teal">Online</dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="mt-4 text-sm text-muted-label">
+              No active package. Choose one under My Packages.
+            </p>
           )}
         </div>
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <SignalFeed initialSignals={signals} />
+        </div>
+        <div className="rounded-lg bg-white p-5 shadow-sm lg:col-span-2">
           <p className="text-xs uppercase tracking-wide text-muted-label">
-            Open signals
+            Quick actions
           </p>
-          <p className="mt-2 text-3xl font-extrabold tabular text-ink">
-            {openCount}
-          </p>
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Link
+              href="/dashboard/payment"
+              prefetch={false}
+              className={buttonVariants({
+                className:
+                  "h-11 w-full justify-start gap-2 bg-orange text-white hover:bg-orange/90",
+              })}
+            >
+              <Cpu className="size-4" />
+              Buy Bot
+            </Link>
+            <Link
+              href="/dashboard/signals-setup"
+              prefetch={false}
+              className={buttonVariants({
+                variant: "outline",
+                className: "h-11 w-full justify-start gap-2",
+              })}
+            >
+              <Radio className="size-4" />
+              Buy Signal
+            </Link>
+            <Link
+              href="/dashboard/balance"
+              prefetch={false}
+              className={buttonVariants({
+                variant: "outline",
+                className: "h-11 w-full justify-start gap-2",
+              })}
+            >
+              <Wallet className="size-4" />
+              Deposit
+            </Link>
+            <Link
+              href="/dashboard/payout"
+              prefetch={false}
+              className={buttonVariants({
+                variant: "outline",
+                className: "h-11 w-full justify-start gap-2",
+              })}
+            >
+              <Banknote className="size-4" />
+              Withdraw
+            </Link>
+          </div>
         </div>
       </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <PortfolioGrowthChart data={growthData} />
-        <DailyPnlChart data={dailyPnl} />
-      </div>
-
-      <SignalFeed initialSignals={signals} />
-
-      <DashboardFinanceSection
-        packages={packages}
-        variants={variants}
-        depositAddresses={addresses}
-        wallet={wallet}
-        payouts={payouts}
-        payments={payments}
-      />
-    </>
+    </div>
   );
 }

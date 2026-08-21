@@ -2,35 +2,42 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Check, Copy, Loader2, X } from "lucide-react";
+import { Check, Copy, Loader2, ScanLine, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { formatUsd } from "@/lib/format";
 import { validateCryptoAddress } from "@/lib/address-validation";
-import type { CryptoCurrency, Payout, WalletBalance } from "@/lib/types";
+import { CurrencyNetworkFields } from "@/components/finance/currency-network-fields";
+import {
+  PAYMENT_RAILS,
+  formatRail,
+  isPaymentRail,
+  type PaymentRail,
+} from "@/lib/wallets";
+import type { Payout, SavedPayoutAddress, WalletBalance } from "@/lib/types";
+import { QrScannerDialog } from "@/components/qr/qr-scanner-dialog";
 import { cn } from "@/lib/utils";
 
 export function PayoutFlow({
   initialWallet,
   initialPayouts,
+  savedAddresses = [],
+  showHistory = true,
 }: {
   initialWallet: WalletBalance | null;
   initialPayouts: Payout[];
+  savedAddresses?: SavedPayoutAddress[];
+  showHistory?: boolean;
 }) {
   const [wallet, setWallet] = useState(initialWallet);
   const [payouts, setPayouts] = useState(initialPayouts);
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState<CryptoCurrency>("USDT");
+  const [currency, setCurrency] = useState<PaymentRail>("USDT_TRC20");
   const [address, setAddress] = useState("");
+  const [savedId, setSavedId] = useState("");
+  const [scanOpen, setScanOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Payout | null>(null);
@@ -143,7 +150,7 @@ export function PayoutFlow({
   function tryAgain() {
     if (result) {
       setAmount(String(result.amount_usd));
-      setCurrency(result.currency);
+      setCurrency(isPaymentRail(result.currency) ? result.currency : "USDT_TRC20");
       setAddress("");
     }
     setResult(null);
@@ -151,14 +158,14 @@ export function PayoutFlow({
 
   if (result?.status === "sent") {
     return (
-      <section className="rounded-2xl bg-white p-8 shadow-sm">
+      <section className="rounded-lg bg-white shadow-sm p-8 shadow-sm">
         <div className="mx-auto max-w-md text-center">
           <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-teal/15">
             <Check className="size-7 text-teal" />
           </div>
           <h2 className="mt-4 text-2xl font-extrabold text-ink">Payout sent</h2>
           <p className="mt-2 text-sm tabular text-muted-label">
-            {formatUsd(result.amount_usd)} · {result.currency}
+            {formatUsd(result.amount_usd)} · {formatRail(result.currency)}
           </p>
           <p className="mt-1 break-all text-xs tabular text-muted-label">
             {result.destination_address}
@@ -178,7 +185,7 @@ export function PayoutFlow({
 
   if (result?.status === "rejected" || result?.status === "failed") {
     return (
-      <section className="rounded-2xl bg-white p-8 shadow-sm">
+      <section className="rounded-lg bg-white shadow-sm p-8 shadow-sm">
         <div className="mx-auto max-w-md text-center">
           <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-hotpink/15">
             <X className="size-7 text-hotpink" />
@@ -199,20 +206,21 @@ export function PayoutFlow({
   }
 
   return (
-    <section className="rounded-2xl border-2 border-orange/40 bg-white p-6 shadow-sm md:p-8">
-      <h2 className="text-xl font-bold text-ink">Payout</h2>
+    <section className="rounded-lg bg-white shadow-sm p-6 md:p-8">
+      <h2 className="text-xl font-bold text-ink">Request a payout</h2>
       <p className="mt-1 text-sm text-muted-label">
-        Withdrawals are reviewed by an admin before crypto is sent.
+        This withdraws available balance only. An admin must approve or reject
+        before crypto is sent.
       </p>
 
-      <div className="mt-6 rounded-xl bg-ink p-5 text-white">
-        <p className="text-xs uppercase tracking-wide text-white/60">
+      <div className="mt-6 rounded-xl bg-canvas p-5 text-ink">
+        <p className="text-xs uppercase tracking-wide text-ink/60">
           Available balance
         </p>
-        <p className="mt-1 text-3xl font-extrabold tabular text-gold">
+        <p className="mt-1 text-3xl font-extrabold tabular text-orange">
           {formatUsd(available)}
         </p>
-        <p className="mt-1 text-xs text-white/50 tabular">
+        <p className="mt-1 text-xs text-ink/50 tabular">
           Pending {formatUsd(wallet?.pending_usd ?? 0)}
         </p>
       </div>
@@ -230,33 +238,65 @@ export function PayoutFlow({
             onChange={(e) => setAmount(e.target.value)}
           />
         </div>
-        <div className="space-y-2">
-          <Label>Currency</Label>
-          <Select
-            value={currency}
-            onValueChange={(v) => v && setCurrency(v as CryptoCurrency)}
-          >
-            <SelectTrigger className="w-full bg-canvas">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="BTC">BTC</SelectItem>
-              <SelectItem value="ETH">ETH</SelectItem>
-              <SelectItem value="USDT">USDT</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <CurrencyNetworkFields
+          rail={currency}
+          rails={PAYMENT_RAILS}
+          onChange={setCurrency}
+        />
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="address">Destination address</Label>
-          <Input
-            id="address"
-            className="bg-canvas tabular"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Wallet address"
-          />
+          {savedAddresses.length > 0 && (
+            <select
+              className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm text-ink"
+              value={savedId}
+              onChange={(e) => {
+                const id = e.target.value;
+                setSavedId(id);
+                const row = savedAddresses.find((s) => s.id === id);
+                if (row) {
+                  setAddress(row.address);
+                  if (isPaymentRail(row.currency)) setCurrency(row.currency);
+                }
+              }}
+            >
+              <option value="">Choose a saved address…</option>
+              {savedAddresses.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.label}
+                  {row.is_primary ? " (primary)" : ""} · {formatRail(row.currency)}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="flex gap-2">
+            <Input
+              id="address"
+              className="bg-canvas tabular"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Wallet address"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setScanOpen(true)}
+            >
+              <ScanLine className="size-4" />
+              Scan QR
+            </Button>
+          </div>
         </div>
       </div>
+
+      <QrScannerDialog
+        open={scanOpen}
+        onOpenChange={setScanOpen}
+        title="Scan your payout wallet"
+        onScan={(value) => {
+          setAddress(value);
+          toast.message("Address filled from QR");
+        }}
+      />
 
       {error && <p className="mt-3 text-sm text-hotpink">{error}</p>}
 
@@ -270,17 +310,18 @@ export function PayoutFlow({
             <Loader2 className="animate-spin" /> Submitting
           </>
         ) : (
-          "Request payout"
+          "Submit for admin review"
         )}
       </Button>
 
       {result?.status === "requested" && (
-        <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-gold/20 px-3 py-1 text-xs font-semibold text-ink">
-          <span className="size-2 animate-pulse rounded-full bg-gold" />
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-orange/15 px-3 py-1 text-xs font-semibold text-ink">
+          <span className="size-2 animate-pulse rounded-full bg-orange" />
           Pending review
         </div>
       )}
 
+      {showHistory && (
       <div className="mt-8">
         <h3 className="text-sm font-semibold text-ink">Recent payouts</h3>
         {payouts.length === 0 ? (
@@ -295,7 +336,7 @@ export function PayoutFlow({
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-canvas px-3 py-2 text-sm"
               >
                 <span className="tabular font-medium">
-                  {formatUsd(p.amount_usd)} {p.currency}
+                  {formatUsd(p.amount_usd)} {formatRail(p.currency)}
                 </span>
                 <span
                   className={cn(
@@ -305,7 +346,7 @@ export function PayoutFlow({
                     (p.status === "requested" ||
                       p.status === "pending_review" ||
                       p.status === "processing") &&
-                      "bg-gold/20 text-ink"
+                      "bg-orange/15 text-ink"
                   )}
                 >
                   {p.status.replace("_", " ")}
@@ -327,6 +368,7 @@ export function PayoutFlow({
           </ul>
         )}
       </div>
+      )}
     </section>
   );
 }

@@ -40,16 +40,16 @@ export function UsersTable({ rows }: { rows: AdminUserRow[] }) {
   return (
     <section id="users" className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 className="text-xl font-bold text-white">Users</h2>
+        <h2 className="text-xl font-bold text-ink">Users</h2>
         <div className="flex gap-2">
           <Input
             placeholder="Search name or email"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="w-56 border-white/20 bg-ink text-white"
+            className="w-56 border-border bg-canvas text-ink"
           />
           <select
-            className="rounded-lg border border-white/20 bg-ink px-2 text-sm text-white"
+            className="rounded-lg border border-border bg-canvas px-2 text-sm text-ink"
             value={sort}
             onChange={(e) => setSort(e.target.value as typeof sort)}
           >
@@ -59,9 +59,9 @@ export function UsersTable({ rows }: { rows: AdminUserRow[] }) {
           </select>
         </div>
       </div>
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
+      <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
         <table className="w-full min-w-[800px] text-left text-sm">
-          <thead className="bg-white/5 text-xs uppercase text-white/50">
+          <thead className="bg-canvas text-xs uppercase text-ink/50">
             <tr>
               <th className="px-3 py-2">Profile</th>
               <th className="px-3 py-2">Package</th>
@@ -72,10 +72,10 @@ export function UsersTable({ rows }: { rows: AdminUserRow[] }) {
           </thead>
           <tbody>
             {filtered.map((r) => (
-              <tr key={r.id} className="border-t border-white/10">
+              <tr key={r.id} className="border-t border-border">
                 <td className="px-3 py-2">
                   <div className="font-medium">{r.full_name || "—"}</div>
-                  <div className="text-xs text-white/50">{r.email}</div>
+                  <div className="text-xs text-ink/50">{r.email}</div>
                 </td>
                 <td className="px-3 py-2">{r.packageName ?? "None"}</td>
                 <td className="px-3 py-2 tabular">
@@ -83,7 +83,7 @@ export function UsersTable({ rows }: { rows: AdminUserRow[] }) {
                 </td>
                 <td className="px-3 py-2 tabular">
                   {formatUsd(r.available)}{" "}
-                  <span className="text-white/40">
+                  <span className="text-ink/40">
                     + {formatUsd(r.pending)} pend
                   </span>
                 </td>
@@ -93,7 +93,7 @@ export function UsersTable({ rows }: { rows: AdminUserRow[] }) {
                       "rounded-full px-2 py-0.5 text-xs",
                       r.packageName
                         ? "bg-teal/20 text-teal"
-                        : "bg-white/10 text-white/60"
+                        : "bg-canvas text-muted-label"
                     )}
                   >
                     {r.packageName ? "Active" : "Free"}

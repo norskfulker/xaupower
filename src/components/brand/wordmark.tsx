@@ -9,7 +9,7 @@ export function Wordmark({
   href?: string;
 }) {
   return (
-    <Link href={href} className={cn("text-xl font-black tracking-tight text-white", className)}>
+    <Link href={href} className={cn("text-xl font-black tracking-tight text-ink", className)}>
       XAU<span className="text-orange">Power</span>
     </Link>
   );

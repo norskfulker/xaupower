@@ -1,7 +1,8 @@
 export type UserRole = "user" | "admin";
 export type PackageName = "Assay" | "Bullion" | "Vault";
 export type UserPackageStatus = "pending" | "active" | "expired";
-export type CryptoCurrency = "BTC" | "ETH" | "USDT";
+export type WalletNetwork = import("@/lib/wallets").WalletNetwork;
+export type CryptoCurrency = import("@/lib/wallets").CryptoCurrency;
 export type RiskTier = "conservative" | "standard" | "aggressive";
 export type PaymentStatus =
   | "waiting"
@@ -19,9 +20,10 @@ export type PayoutStatus =
   | "sent"
   | "rejected"
   | "failed";
-export type SignalPair = "XAUUSD" | "XAGUSD";
+export type SignalPair = "XAUUSD" | "XAGUSD"; // XAGUSD kept for historical rows only
 export type SignalDirection = "long" | "short";
 export type SignalStatus = "open" | "closed" | "cancelled";
+export type PaymentKind = "package" | "balance" | "signal";
 export type TransactionType =
   | "deposit"
   | "payout"
@@ -33,6 +35,23 @@ export interface Profile {
   email: string;
   full_name: string | null;
   role: UserRole;
+  phone: string | null;
+  notification_preferences: NotificationPreferences;
+  created_at: string;
+}
+
+export interface NotificationPreferences {
+  email_deposits: boolean;
+  email_payouts: boolean;
+}
+
+export interface SavedPayoutAddress {
+  id: string;
+  user_id: string;
+  currency: CryptoCurrency;
+  address: string;
+  label: string;
+  is_primary: boolean;
   created_at: string;
 }
 
@@ -63,6 +82,18 @@ export interface PackageVariant {
   packages?: Package;
 }
 
+export interface VariantSnapshot {
+  id: string;
+  package_id: string;
+  package_name: string;
+  risk_tier: RiskTier;
+  price_usd: number;
+  max_lot_size: number;
+  profit_target_pct: number;
+  max_drawdown_pct: number;
+  roadmap: RoadmapStep[];
+}
+
 export interface UserPackage {
   id: string;
   user_id: string;
@@ -70,13 +101,15 @@ export interface UserPackage {
   status: UserPackageStatus;
   purchased_at: string | null;
   expires_at: string | null;
+  variant_snapshot?: VariantSnapshot | null;
   package_variants?: PackageVariant & { packages?: Package };
 }
 
 export interface Payment {
   id: string;
   user_id: string;
-  package_variant_id: string;
+  kind: PaymentKind;
+  package_variant_id: string | null;
   currency: CryptoCurrency;
   amount_usd: number;
   nowpayments_payment_id: string | null;
@@ -87,6 +120,7 @@ export interface Payment {
   submitted_at: string | null;
   created_at: string;
   confirmed_at: string | null;
+  variant_snapshot?: VariantSnapshot | null;
   package_variants?: PackageVariant & { packages?: Package };
   profiles?: Pick<Profile, "email" | "full_name"> | null;
 }
@@ -138,7 +172,7 @@ export interface PortfolioSnapshot {
 
 export interface DepositAddress {
   id: string;
-  currency: CryptoCurrency;
+  currency: WalletNetwork;
   address: string;
   is_active: boolean;
   updated_at: string;
@@ -156,4 +190,16 @@ export interface LedgerTransaction {
   created_at: string;
 }
 
+export interface UserSignalAccess {
+  id: string;
+  user_id: string;
+  status: UserPackageStatus;
+  purchased_at: string;
+  expires_at: string | null;
+}
+
 export const PLACEHOLDER_DEPOSIT_PREFIX = "PLACEHOLDER_";
+export const SIGNAL_PRICE_USD = 49;
+export const MIN_BALANCE_TOPUP_USD = 10;
+export const TRADINGVIEW_CHART_URL =
+  "https://www.tradingview.com/chart/?symbol=OANDA:XAUUSD";
