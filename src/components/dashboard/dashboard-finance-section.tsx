@@ -1,9 +1,10 @@
 "use client";
 
-import { formatUsd } from "@/lib/format";
-import { SIGNAL_PRICE_USD } from "@/lib/types";
 import type { Package, PackageVariant } from "@/lib/types";
 import Link from "next/link";
+
+const TELEGRAM_URL =
+  process.env.NEXT_PUBLIC_TELEGRAM_URL ?? "https://t.me/xaupower";
 
 export function DashboardFinanceSection({
   hasActivePackage,
@@ -38,49 +39,52 @@ export function DashboardFinanceSection({
                 from Payout after admin approval.
               </p>
             </Link>
-            <Link
-              href="/dashboard/signals-setup"
+            <a
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-2xl bg-canvas px-4 py-4 text-left transition hover:bg-orange/10"
             >
               <span className="inline-flex size-7 items-center justify-center rounded-full bg-orange text-xs font-bold text-white">
                 2
               </span>
-              <p className="mt-3 font-semibold text-ink">TradingView pine script</p>
+              <p className="mt-3 font-semibold text-ink">Join VIP Signals</p>
               <p className="mt-1 text-sm text-muted-label">
-                Optional: buy standalone signals and apply the pine script
-                yourself. This path has no VPS and no trading-balance payout.
+                Telegram VIP membership: about 15–20 signals a day. Public feed
+                is normally only 1–2 per day.
               </p>
-            </Link>
+            </a>
           </>
         ) : (
           <>
             <Link
-              href="/dashboard/payment"
+              href="/dashboard/packages"
               className="rounded-2xl bg-canvas px-4 py-4 text-left transition hover:bg-orange/10"
             >
               <span className="inline-flex size-7 items-center justify-center rounded-full bg-orange text-xs font-bold text-white">
                 A
               </span>
-              <p className="mt-3 font-semibold text-ink">Buy the VPS bot</p>
+              <p className="mt-3 font-semibold text-ink">Buy Bot</p>
               <p className="mt-1 text-sm text-muted-label">
                 We set up the VPS. Then you add trading balance here and the bot
                 takes XAUUSD trades with that capital.
               </p>
             </Link>
-            <Link
-              href="/dashboard/signals-setup"
+            <a
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-2xl bg-canvas px-4 py-4 text-left transition hover:bg-orange/10"
             >
               <span className="inline-flex size-7 items-center justify-center rounded-full bg-orange text-xs font-bold text-white">
                 B
               </span>
-              <p className="mt-3 font-semibold text-ink">Buy pine script only</p>
+              <p className="mt-3 font-semibold text-ink">Telegram VIP Signals</p>
               <p className="mt-1 text-sm text-muted-label">
-                {formatUsd(SIGNAL_PRICE_USD)} for 30 days — get the TradingView
-                pine script and apply it yourself. No VPS bot and no payout of
-                trading capital.
+                Join VIP membership for about 15–20 signals a day — the normal
+                feed is only 1–2 per day.
               </p>
-            </Link>
+            </a>
           </>
         )}
       </div>

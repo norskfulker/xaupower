@@ -7,9 +7,7 @@ import type {
   DepositAddress,
   Package,
   PackageVariant,
-  Payment,
 } from "@/lib/types";
-import Link from "next/link";
 
 export function DepositsWorkspace({
   packages,
@@ -82,11 +80,7 @@ export function DepositsWorkspace({
       )}
       <p className="text-xs text-muted-label">
         Crypto only (BTC, ETH, USDT and listed networks). No bank or card
-        deposits. Pine script purchases live on{" "}
-        <Link href="/dashboard/pine-script" className="text-orange">
-          Pine Script
-        </Link>
-        .
+        deposits.
       </p>
     </div>
   );

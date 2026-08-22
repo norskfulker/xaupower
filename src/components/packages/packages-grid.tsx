@@ -18,14 +18,14 @@ export function PackagesGrid({
   ctaLabel?: string;
 }) {
   return (
-    <div className="grid gap-6 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-3">
       {packages.map((pkg) => (
         <div
           key={pkg.id}
           className={cn(
-            "relative rounded-2xl bg-white p-6 text-center shadow-sm",
+            "relative w-full rounded-2xl bg-white p-5 text-center shadow-sm sm:p-6",
             pkg.is_featured &&
-              "z-10 -rotate-1 border-2 border-orange shadow-md"
+              "z-10 border-2 border-orange shadow-md md:-rotate-1"
           )}
         >
           {pkg.is_featured && (
@@ -58,7 +58,7 @@ export function PackagesGrid({
             <Link
               href={ctaHref ?? `/dashboard/payment?package=${pkg.id}`}
               className={cn(
-                "mt-6 inline-flex h-9 w-full items-center justify-center rounded-lg bg-orange text-sm font-medium text-white hover:bg-orange/90"
+                "mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-orange px-4 text-sm font-medium text-white hover:bg-orange/90"
               )}
             >
               {ctaLabel}

@@ -6,41 +6,41 @@
 
 @layer base {
   :root {
-    /* Burgundy Floor — wine, cool paper, bronze */
-    --ink: 350 40% 12%;
-    --canvas: 340 12% 95%;
-    --orange: 351 60% 34%;
-    --gold: 37 40% 61%;
-    --teal: 159 54% 36%;
-    --hotpink: 351 55% 48%;
-    --muted-label: 340 8% 45%;
+    /* Golden Vault — cream paper, warm gold, deep bronze ink */
+    --ink: 30 25% 14%;
+    --canvas: 40 45% 96%;
+    --orange: 38 72% 42%;
+    --gold: 42 65% 52%;
+    --teal: 158 42% 36%;
+    --hotpink: 12 70% 48%;
+    --muted-label: 30 12% 42%;
 
     /* shadcn mapped to brand */
-    --background: 340 12% 95%;
-    --foreground: 350 40% 12%;
-    --card: 0 0% 100%;
-    --card-foreground: 350 40% 12%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 350 40% 12%;
-    --primary: 351 60% 34%;
+    --background: 40 45% 96%;
+    --foreground: 30 25% 14%;
+    --card: 40 50% 99%;
+    --card-foreground: 30 25% 14%;
+    --popover: 40 50% 99%;
+    --popover-foreground: 30 25% 14%;
+    --primary: 38 72% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 340 12% 92%;
-    --secondary-foreground: 350 40% 12%;
-    --muted: 340 10% 90%;
-    --muted-foreground: 340 8% 42%;
-    --accent: 37 40% 61%;
-    --accent-foreground: 350 40% 12%;
-    --destructive: 351 55% 48%;
+    --secondary: 40 30% 92%;
+    --secondary-foreground: 30 25% 14%;
+    --muted: 40 25% 90%;
+    --muted-foreground: 30 12% 40%;
+    --accent: 42 65% 52%;
+    --accent-foreground: 30 25% 14%;
+    --destructive: 12 70% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 340 10% 86%;
-    --input: 340 10% 86%;
-    --ring: 351 60% 34%;
+    --border: 36 22% 84%;
+    --input: 36 22% 84%;
+    --ring: 38 72% 42%;
     --radius: 1rem;
-    --chart-1: 351 60% 34%;
-    --chart-2: 159 54% 36%;
-    --chart-3: 37 40% 61%;
-    --chart-4: 351 55% 48%;
-    --chart-5: 340 8% 45%;
+    --chart-1: 38 72% 42%;
+    --chart-2: 158 42% 36%;
+    --chart-3: 42 65% 52%;
+    --chart-4: 12 70% 48%;
+    --chart-5: 30 12% 42%;
   }
 
   * {

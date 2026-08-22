@@ -3,11 +3,13 @@
 import { CrownMark } from "@/components/brand/crown-mark";
 import { Wordmark } from "@/components/brand/wordmark";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { CashierNavItem } from "@/components/dashboard/cashier-dialog";
 import { ProfileMenu } from "@/components/layout/profile-menu";
 import { ProfitsTicker } from "@/components/layout/profits-ticker";
+import { TickerStrip } from "@/components/ticker/ticker-strip";
 import { cn } from "@/lib/utils";
+import type { PriceQuote } from "@/lib/prices";
 import { createClient } from "@/lib/supabase/client";
-import { isForexMarketOpen } from "@/lib/market-hours";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +29,7 @@ import {
   CreditCard,
   LayoutDashboard,
   Menu,
+  Palette,
   Settings,
   Shield,
   User,
@@ -36,8 +39,7 @@ import {
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
+import { FormEvent, useEffect, useState } from "react";
 
 type NavItem = {
   href: string;
@@ -48,15 +50,8 @@ type NavItem = {
 
 const USER_NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/packages", label: "My Packages", icon: Boxes },
-  { href: "/dashboard/payment", label: "Deposits", icon: CreditCard },
-  { href: "/dashboard/payout", label: "Payouts", icon: Banknote },
+  { href: "/dashboard/packages", label: "Buy Bot", icon: Boxes },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
-  {
-    href: "/dashboard/pine-script",
-    label: "Pine Script",
-    icon: CandlestickChart,
-  },
   { href: "/admin", label: "Admin", icon: Shield, adminOnly: true },
 ];
 
@@ -69,6 +64,10 @@ function NavLinks({
 }) {
   const pathname = usePathname();
   const items = USER_NAV.filter((item) => !item.adminOnly || isAdmin);
+  const cashierActive =
+    pathname.startsWith("/dashboard/balance") ||
+    pathname.startsWith("/dashboard/payout") ||
+    pathname.startsWith("/dashboard/payment");
 
   return (
     <nav className="flex flex-col gap-1">
@@ -80,6 +79,28 @@ function NavLinks({
               ? pathname.startsWith("/admin")
               : pathname.startsWith(item.href);
         const Icon = item.icon;
+        if (item.href === "/dashboard/packages") {
+          return (
+            <div key={item.href} className="contents">
+              <Link
+                href={item.href}
+                prefetch={false}
+                onClick={onNavigate}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition",
+                  active
+                    ? "bg-orange text-white"
+                    : "text-ink/70 hover:bg-orange/10 hover:text-ink"
+                )}
+              >
+                <Icon className="size-4 shrink-0" />
+                {item.label}
+              </Link>
+              <CashierNavItem onNavigate={onNavigate} active={cashierActive} />
+            </div>
+          );
+        }
+
         return (
           <Link
             key={item.href}
@@ -112,6 +133,7 @@ const ADMIN_NAV: NavItem[] = [
   { href: "/admin/packages", label: "Packages", icon: Boxes },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/settings/wallets", label: "Wallets", icon: Wallet },
+  { href: "/admin/design", label: "Design", icon: Palette },
 ];
 
 function AdminNavLinks({
@@ -317,34 +339,24 @@ function SidebarBrand({ href }: { href: string }) {
   );
 }
 
-function WelcomeHeader({
+function TopBarProfile({
   fullName,
   memberLabel,
   email,
+  initialQuotes = [],
 }: {
   fullName?: string | null;
   memberLabel: string;
   email?: string | null;
+  initialQuotes?: PriceQuote[];
 }) {
-  const now = useMemo(() => new Date(), []);
-  const open = isForexMarketOpen(now);
-  const first = fullName?.trim().split(" ")[0] || "there";
-
   return (
-    <div className="flex h-full items-center justify-between gap-4">
-      <div className="min-w-0">
-        <h1 className="truncate text-lg font-bold text-ink sm:text-xl">
-          Welcome back, {first}
-        </h1>
-        <p className="mt-0.5 text-sm text-muted-label">
-          {format(now, "EEEE, d MMMM yyyy")}
-          <span className="mx-2 text-border">·</span>
-          Market Status:{" "}
-          <span className={open ? "text-teal" : "text-hotpink"}>
-            {open ? "Open" : "Closed"}
-          </span>
-        </p>
-      </div>
+    <div className="flex h-full items-center justify-between gap-3">
+      <TickerStrip
+        className="min-w-0"
+        tone="light"
+        initialQuotes={initialQuotes}
+      />
       <ProfileMenu
         fullName={fullName}
         email={email}
@@ -362,6 +374,7 @@ export function AppHeader({
   userId,
   isAdmin = false,
   memberLabel = "Member",
+  initialQuotes = [],
   children,
 }: {
   variant?: "user" | "admin";
@@ -370,6 +383,7 @@ export function AppHeader({
   userId?: string;
   isAdmin?: boolean;
   memberLabel?: string;
+  initialQuotes?: PriceQuote[];
   children?: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -437,8 +451,8 @@ export function AppHeader({
       </aside>
 
       <div className="md:pl-60">
-        <header className="border-b border-border bg-canvas">
-          <div className="flex h-20 items-center gap-3 px-4 md:px-0">
+        <header className="border-b border-border bg-white">
+          <div className="flex h-16 items-center gap-3 px-4 md:px-0">
             <Button
               type="button"
               size="icon"
@@ -456,10 +470,11 @@ export function AppHeader({
                 isAdminRoute ? "px-2 sm:px-6" : "md:w-[70%]"
               )}
             >
-              <WelcomeHeader
+              <TopBarProfile
                 fullName={fullName}
                 memberLabel={memberLabel}
                 email={email}
+                initialQuotes={initialQuotes}
               />
             </div>
           </div>

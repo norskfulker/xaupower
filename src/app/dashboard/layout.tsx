@@ -1,6 +1,12 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { AccessToast } from "@/components/auth/access-toast";
-import { getAuthUser, getOwnProfile, createClient, redirectIfMfaPending } from "@/lib/supabase/server";
+import {
+  getAuthUser,
+  getOwnProfile,
+  createClient,
+  redirectIfMfaPending,
+  getPriceQuotes,
+} from "@/lib/supabase/server";
 import { packageDisplayLabel, resolveUserPackageTerms } from "@/lib/package-terms";
 import type { UserPackage } from "@/lib/types";
 import { redirect } from "next/navigation";
@@ -35,7 +41,7 @@ export default async function DashboardLayout({
   await redirectIfMfaPending("/dashboard");
 
   const supabase = createClient();
-  const [profile, pkgRes] = await Promise.all([
+  const [profile, pkgRes, quotes] = await Promise.all([
     getOwnProfile(user.id),
     supabase
       .from("user_packages")
@@ -43,6 +49,7 @@ export default async function DashboardLayout({
       .eq("user_id", user.id)
       .eq("status", "active")
       .maybeSingle(),
+    getPriceQuotes(),
   ]);
 
   const terms = resolveUserPackageTerms(
@@ -58,6 +65,7 @@ export default async function DashboardLayout({
       userId={user.id}
       isAdmin={profile?.role === "admin"}
       memberLabel={memberLabel}
+      initialQuotes={quotes}
     >
       <Suspense fallback={null}>
         <AccessToast />

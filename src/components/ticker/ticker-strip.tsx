@@ -1,5 +1,6 @@
 "use client";
 
+import { GoldIcon } from "@/components/brand/gold-icon";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/format";
 import {
@@ -137,10 +138,10 @@ export function TickerStrip({
           tick.flash && tick.direction === "down" && "bg-teal/15"
         )}
       >
-        <span className={cn("mr-2", muted)}>XAUUSD</span>
+        <GoldIcon className="mr-2 inline-block align-middle" aria-hidden />
         {tick.price == null ? "—" : formatPrice(tick.price, 2)}
         {tick.price != null && stale && asOf && (
-          <span className={cn("ml-2 text-[10px] font-medium uppercase", muted)}>
+          <span className={cn("ml-2 hidden text-[10px] font-medium uppercase sm:inline", muted)}>
             delayed · as of {asOf}
           </span>
         )}
