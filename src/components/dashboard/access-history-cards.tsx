@@ -1,6 +1,7 @@
 "use client";
 
 import { StatusPill } from "@/components/ui/status-pill";
+import { SurfaceCard } from "@/components/ui/surface-card";
 import {
   Dialog,
   DialogContent,
@@ -33,14 +34,12 @@ export function AccessHistoryCards({ rows }: { rows: HistoryRow[] }) {
 
   return (
     <>
-      <div className="rounded-lg bg-white p-5 shadow-sm">
-        <p className="text-xs uppercase tracking-wide text-muted-label">
-          Access history
-        </p>
+      <SurfaceCard className="flex h-full min-h-[16rem] flex-col">
+        <p className="text-kicker">Access history</p>
         {rows.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-label">No bot access yet.</p>
+          <p className="mt-5 text-sm text-muted-label">No bot access yet.</p>
         ) : (
-          <ul className="mt-4 space-y-2">
+          <ul className="mt-5 space-y-2.5">
             {rows.map((row) => {
               const rowTerms = resolveUserPackageTerms(row);
               const label = packageDisplayLabel(rowTerms) ?? "Bot";
@@ -49,7 +48,7 @@ export function AccessHistoryCards({ rows }: { rows: HistoryRow[] }) {
                   <button
                     type="button"
                     onClick={() => setSelected(row)}
-                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-canvas px-3.5 py-3 text-left transition hover:border-orange/40 hover:bg-orange/5"
+                    className="flex w-full items-center justify-between gap-3 rounded-xl bg-canvas px-3.5 py-3.5 text-left transition hover:bg-orange/5"
                   >
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-ink">
@@ -72,7 +71,7 @@ export function AccessHistoryCards({ rows }: { rows: HistoryRow[] }) {
             })}
           </ul>
         )}
-      </div>
+      </SurfaceCard>
 
       <Dialog
         open={Boolean(selected)}
@@ -80,9 +79,9 @@ export function AccessHistoryCards({ rows }: { rows: HistoryRow[] }) {
           if (!open) setSelected(null);
         }}
       >
-        <DialogContent className="max-w-md border-border bg-white p-6 text-ink sm:max-w-md sm:rounded-2xl">
+        <DialogContent className="max-w-md border-border bg-white text-ink">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-ink">
+            <DialogTitle>
               {packageDisplayLabel(terms) ?? "Bot access"}
             </DialogTitle>
             <DialogDescription className="text-muted-label">

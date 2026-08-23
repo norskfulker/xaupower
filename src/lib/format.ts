@@ -45,7 +45,7 @@ export const PAYMENT_KIND_LABEL: Record<"package" | "balance" | "signal", string
   {
     package: "VPS bot setup",
     balance: "Bot trading balance",
-    signal: "TradingView pine script",
+    signal: "Signals (legacy)",
   };
 
 export const PAYMENT_KIND_BLURB: Record<"package" | "balance" | "signal", string> =
@@ -54,6 +54,5 @@ export const PAYMENT_KIND_BLURB: Record<"package" | "balance" | "signal", string
       "Setup fee. After approval we provision the VPS bot. Trading capital is a separate deposit.",
     balance:
       "Trading capital the VPS bot uses. After approval it credits the user wallet and can be paid out later.",
-    signal:
-      "Standalone signals. After approval the user gets the TradingView pine script — no VPS and no trading-balance payout.",
+    signal: "Legacy signal purchases — no longer offered.",
   };

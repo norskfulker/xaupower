@@ -33,14 +33,11 @@ export function PackagesEditor({ initialRows }: { initialRows: Row[] }) {
   return (
     <section className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Packages</h1>
-        <p className="text-sm text-ink/50">
-          Edits change live prices for new purchases only. Existing customers
-          keep the terms snapshotted at approval.
-        </p>
+        <p className="text-kicker">Admin</p>
+        <h1 className="text-display mt-1 text-3xl sm:text-4xl">Packages</h1>
       </div>
 
-      <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-2xl bg-card shadow-card">
         <table className="w-full min-w-[920px] text-left text-sm">
           <thead className="bg-canvas text-xs uppercase text-ink/50">
             <tr>

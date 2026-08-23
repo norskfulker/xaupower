@@ -198,7 +198,7 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg bg-white p-4 shadow-sm">
+    <section className="rounded-2xl bg-card p-5 shadow-card sm:p-6">
       <h2 className="mb-3 text-sm font-semibold text-ink">{title}</h2>
       {children}
     </section>

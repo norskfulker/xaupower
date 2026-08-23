@@ -34,7 +34,7 @@ export function TransactionsTable({
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-lg bg-white shadow-sm p-8 text-center">
+      <div className="rounded-2xl bg-card p-8 text-center shadow-card sm:p-10">
         <h2 className="text-lg font-bold text-ink">No transactions yet</h2>
         <p className="mt-2 text-sm text-muted-label">
           Deposits, payouts, and package purchases will show up here.
@@ -53,7 +53,7 @@ export function TransactionsTable({
           className="max-w-xs border-border bg-white text-ink"
         />
         <select
-          className="h-10 rounded-lg border border-border bg-white px-2 text-sm text-ink"
+          className="h-11 rounded-xl border border-border bg-card px-3 text-sm text-ink"
           value={type}
           onChange={(e) => setType(e.target.value)}
         >
@@ -64,7 +64,7 @@ export function TransactionsTable({
           <option value="signal_settlement">Signal settlement</option>
         </select>
         <select
-          className="h-10 rounded-lg border border-border bg-white px-2 text-sm text-ink"
+          className="h-11 rounded-xl border border-border bg-card px-3 text-sm text-ink"
           value={sort}
           onChange={(e) => setSort(e.target.value as typeof sort)}
         >
@@ -74,15 +74,15 @@ export function TransactionsTable({
         </select>
       </div>
 
-      <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-2xl bg-card shadow-card">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="bg-canvas text-xs uppercase tracking-wide text-muted-label">
             <tr>
-              <th className="px-4 py-3 font-medium">Date</th>
-              <th className="px-4 py-3 font-medium">Type</th>
-              <th className="px-4 py-3 font-medium">Description</th>
-              <th className="px-4 py-3 font-medium">Amount</th>
-              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3.5 font-medium">Date</th>
+              <th className="px-4 py-3.5 font-medium">Type</th>
+              <th className="px-4 py-3.5 font-medium">Description</th>
+              <th className="px-4 py-3.5 font-medium">Amount</th>
+              <th className="px-4 py-3.5 font-medium">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -90,24 +90,24 @@ export function TransactionsTable({
               const amount = Number(r.amount_usd);
               const positive = amount >= 0;
               return (
-                <tr key={r.id} className="border-t border-border">
-                  <td className="px-4 py-3 text-muted-label">
+                <tr key={r.id} className="border-t border-border/50">
+                  <td className="px-4 py-3.5 text-muted-label">
                     {new Date(r.created_at).toLocaleString()}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5">
                     <TypeBadge type={r.type} />
                   </td>
-                  <td className="px-4 py-3 text-ink">{r.description}</td>
+                  <td className="px-4 py-3.5 text-ink">{r.description}</td>
                   <td
                     className={cn(
-                      "px-4 py-3 font-semibold tabular",
+                      "px-4 py-3.5 font-semibold tabular",
                       positive ? "text-teal" : "text-hotpink"
                     )}
                   >
                     {positive ? "+" : ""}
                     {formatUsd(amount)}
                   </td>
-                  <td className="px-4 py-3 capitalize text-muted-label">
+                  <td className="px-4 py-3.5 capitalize text-muted-label">
                     {r.status_at_time.replace("_", " ")}
                   </td>
                 </tr>

@@ -18,10 +18,10 @@ export function LandingHeader({
   quotes: PriceQuote[];
 }) {
   return (
-    <header className="border-b border-border bg-canvas">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="flex min-h-14 items-center justify-between gap-3 py-3">
-          <div className="flex min-w-0 items-center gap-4 lg:gap-6">
+    <header className="fixed inset-x-4 top-4 z-50 mx-auto max-w-6xl">
+      <div className="surface-float">
+        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5">
+          <div className="flex min-w-0 items-center gap-4">
             <Wordmark href="/" className="shrink-0 text-ink" />
             <TickerStrip
               className="hidden lg:flex"
@@ -43,7 +43,7 @@ export function LandingHeader({
                   href={authHref}
                   className={cn(
                     buttonVariants({ variant: "ghost", size: "sm" }),
-                    "hidden min-h-10 text-ink/70 hover:bg-white hover:text-ink sm:inline-flex"
+                    "hidden min-h-10 text-ink/70 hover:bg-orange/10 hover:text-ink sm:inline-flex"
                   )}
                 >
                   Sign in
@@ -62,7 +62,7 @@ export function LandingHeader({
             )}
           </div>
         </div>
-        <div className="flex justify-center border-t border-border py-2.5 lg:hidden">
+        <div className="flex justify-center border-t border-border/50 py-2 lg:hidden">
           <TickerStrip tone="light" initialQuotes={quotes} />
         </div>
       </div>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatUsd } from "@/lib/format";
-import { validateCryptoAddress } from "@/lib/address-validation";
+import { validateCryptoAddress, addressNetworkHint, isValidCryptoAddress } from "@/lib/address-validation";
 import { CurrencyNetworkFields } from "@/components/finance/currency-network-fields";
 import {
   PAYMENT_RAILS,
@@ -158,12 +158,12 @@ export function PayoutFlow({
 
   if (result?.status === "sent") {
     return (
-      <section className="rounded-lg bg-white shadow-sm p-8 shadow-sm">
+      <section className="rounded-2xl bg-card p-8 shadow-card sm:p-9">
         <div className="mx-auto max-w-md text-center">
           <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-teal/15">
             <Check className="size-7 text-teal" />
           </div>
-          <h2 className="mt-4 text-2xl font-extrabold text-ink">Payout sent</h2>
+          <h2 className="mt-4 text-2xl font-black tracking-tight text-ink">Payout sent</h2>
           <p className="mt-2 text-sm tabular text-muted-label">
             {formatUsd(result.amount_usd)} · {formatRail(result.currency)}
           </p>
@@ -185,12 +185,12 @@ export function PayoutFlow({
 
   if (result?.status === "rejected" || result?.status === "failed") {
     return (
-      <section className="rounded-lg bg-white shadow-sm p-8 shadow-sm">
+      <section className="rounded-2xl bg-card p-8 shadow-card sm:p-9">
         <div className="mx-auto max-w-md text-center">
           <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-hotpink/15">
             <X className="size-7 text-hotpink" />
           </div>
-          <h2 className="mt-4 text-2xl font-extrabold text-ink">Payout rejected</h2>
+          <h2 className="mt-4 text-2xl font-black tracking-tight text-ink">Payout rejected</h2>
           <p className="mt-2 text-sm text-muted-label">
             {result.admin_note || "This payout was not approved."}
           </p>
@@ -206,21 +206,16 @@ export function PayoutFlow({
   }
 
   return (
-    <section className="rounded-lg bg-white shadow-sm p-6 md:p-8">
-      <h2 className="text-xl font-bold text-ink">Request a payout</h2>
-      <p className="mt-1 text-sm text-muted-label">
-        This withdraws available balance only. An admin must approve or reject
-        before crypto is sent.
-      </p>
+    <section className="rounded-2xl bg-card p-6 shadow-card sm:p-8">
+      <p className="text-kicker">Withdraw</p>
+      <h2 className="mt-2 text-xl font-bold text-ink">Request a payout</h2>
 
-      <div className="mt-6 rounded-xl bg-canvas p-5 text-ink">
-        <p className="text-xs uppercase tracking-wide text-ink/60">
-          Available balance
-        </p>
-        <p className="mt-1 text-3xl font-extrabold tabular text-orange">
+      <div className="mt-6 rounded-2xl bg-canvas p-5 text-ink sm:p-6">
+        <p className="text-kicker">Available balance</p>
+        <p className="text-metric mt-3 text-orange">
           {formatUsd(available)}
         </p>
-        <p className="mt-1 text-xs text-ink/50 tabular">
+        <p className="mt-2 text-xs tabular text-muted-label">
           Pending {formatUsd(wallet?.pending_usd ?? 0)}
         </p>
       </div>
@@ -247,7 +242,7 @@ export function PayoutFlow({
           <Label htmlFor="address">Destination address</Label>
           {savedAddresses.length > 0 && (
             <select
-              className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm text-ink"
+              className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm text-ink"
               value={savedId}
               onChange={(e) => {
                 const id = e.target.value;
@@ -271,9 +266,18 @@ export function PayoutFlow({
           <div className="flex gap-2">
             <Input
               id="address"
-              className="bg-canvas tabular"
+              className={cn(
+                "bg-canvas tabular",
+                address.trim() &&
+                  (isValidCryptoAddress(currency, address)
+                    ? "border-teal focus-visible:border-teal"
+                    : "border-hotpink focus-visible:border-hotpink")
+              )}
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                setError(null);
+              }}
               placeholder="Wallet address"
             />
             <Button
@@ -285,6 +289,19 @@ export function PayoutFlow({
               Scan QR
             </Button>
           </div>
+          <p className="text-xs text-muted-label">
+            Format check · {addressNetworkHint(currency)}
+          </p>
+          {address.trim() && isValidCryptoAddress(currency, address) && (
+            <p className="flex items-center gap-1.5 text-xs font-medium text-teal">
+              <Check className="size-3.5" /> Address format looks valid
+            </p>
+          )}
+          {address.trim() && !isValidCryptoAddress(currency, address) && (
+            <p className="text-xs text-hotpink">
+              {validateCryptoAddress(currency, address)}
+            </p>
+          )}
         </div>
       </div>
 

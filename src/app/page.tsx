@@ -94,7 +94,7 @@ export default async function HomePage() {
   const xauQuote = quotes.find((q) => q.pair === "XAUUSD") ?? null;
 
   return (
-    <div className="min-h-screen bg-canvas text-ink pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(5rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen bg-canvas pt-28 text-ink pb-[calc(8rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <LandingHeader
         user={user}
         profile={profile}
@@ -103,18 +103,18 @@ export default async function HomePage() {
       />
 
       {/* HERO — mobile: headline → chart → copy → CTAs */}
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:py-20">
-        <div className="grid gap-6 lg:grid-cols-2 lg:items-center lg:gap-16">
-          <div className="flex flex-col gap-4 text-center sm:gap-5 lg:text-left">
-            <p className="inline-flex items-center justify-center gap-2 self-center rounded-full border border-orange/20 bg-orange/5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-orange sm:text-xs sm:tracking-[0.18em] lg:self-start">
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
+        <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-16">
+          <div className="flex flex-col gap-5 text-center sm:gap-6 lg:text-left">
+            <p className="text-kicker inline-flex items-center justify-center gap-2 self-center lg:self-start">
               <Cloud className="size-3.5 shrink-0" /> Cloud VPS Auto-Execution
             </p>
-            <h1 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-6xl">
+            <h1 className="text-display">
               Automated Gold
               <br />
               Trading Engine
             </h1>
-            <p className="text-lg font-bold tracking-tight text-orange sm:text-xl lg:text-2xl">
+            <p className="text-lg font-bold leading-snug tracking-tight text-orange sm:text-xl">
               Plug into the VPS. Pay for signals. We execute the trades.
             </p>
           </div>
@@ -124,11 +124,6 @@ export default async function HomePage() {
           </div>
 
           <div className="flex flex-col gap-5 text-center lg:col-start-1 lg:row-start-2 lg:text-left">
-            <p className="mx-auto max-w-lg text-sm leading-relaxed text-muted-label sm:text-base lg:mx-0">
-              XAUPower connects to dedicated cloud servers to execute XAU/USD
-              setups hands-free. Pay a fixed setup fee, deposit your balance, and
-              withdraw whenever you choose.
-            </p>
             <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start">
               <Link href={authHref} className={ctaPrimary}>
                 <Bot className="size-4 shrink-0" />
@@ -163,8 +158,8 @@ export default async function HomePage() {
       </section>
 
       {/* STATS */}
-      <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 sm:pb-12">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+      <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 sm:pb-16">
+        <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
           <StatCard icon={Server} kicker="24/7 VPS" label="Dedicated execution host" />
           <StatCard icon={TrendingUp} kicker="XAU/USD" label="Specialized gold algorithm" />
           <StatCard icon={Wallet} kicker="$50+" label="Fixed setup signal fee" />
@@ -182,16 +177,10 @@ export default async function HomePage() {
       {/* SYSTEM OVERVIEW */}
       <section className="mx-auto max-w-7xl border-t border-border px-4 py-10 sm:px-6 sm:py-16">
         <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange">
-            System Overview
-          </p>
-          <h2 className="mx-auto mt-2 max-w-xl text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
+          <p className="text-kicker text-orange">System Overview</p>
+          <h2 className="mx-auto mt-2 max-w-xl text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
             Designed for hands-free precision
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-muted-label sm:text-base">
-            No manual entries, missed setups, or emotional decisions. The bot runs
-            continuously on dedicated cloud infrastructure.
-          </p>
         </div>
         <div className="mx-auto mt-8 w-full max-w-md sm:mt-10">
           <SetupCard />
@@ -200,7 +189,7 @@ export default async function HomePage() {
 
       {/* GLOBAL REACH */}
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12">
-        <Card className="w-full border-border bg-white text-center shadow-sm">
+        <Card className="w-full text-center">
           <CardHeader className="px-4 sm:px-6">
             <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-orange/10">
               <Globe className="size-6 text-orange" />
@@ -226,7 +215,7 @@ export default async function HomePage() {
             How the bot executes your trades
           </h2>
         </div>
-        <div className="mt-8 grid grid-cols-1 gap-3 sm:mt-10 sm:gap-4 md:grid-cols-2">
+        <div className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:mt-10 sm:gap-5 md:grid-cols-2">
           <LearnBlock
             icon={<Zap className="size-5 text-orange" />}
             title="1. Algorithmic Signals"
@@ -260,7 +249,7 @@ export default async function HomePage() {
             4 steps to start auto-trading
           </h2>
         </div>
-        <ol className="mt-8 grid grid-cols-1 gap-3 sm:mt-10 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:mt-10 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
           <FeedStep
             n="01"
             title="Select Risk Level"
@@ -309,7 +298,7 @@ export default async function HomePage() {
             What users say about automated execution
           </h2>
         </div>
-        <div className="mt-8 grid grid-cols-1 gap-3 sm:mt-10 sm:gap-4 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:mt-10 sm:gap-5 lg:grid-cols-3">
           <Quote
             body="Not having to sit in front of charts all day during London session was the big game-changer. The VPS handles entries instantly without emotion."
             who="Automated Plan User"
@@ -335,7 +324,7 @@ export default async function HomePage() {
             Built for reliability & control
           </h2>
         </div>
-        <ul className="mt-8 grid grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+        <ul className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:mt-10 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {(
             [
               ["Hosted VPS Execution", "Zero device overhead. Dedicated server hosts your bot.", Server],
@@ -347,14 +336,14 @@ export default async function HomePage() {
             ] as const satisfies ReadonlyArray<[string, string, LucideIcon]>
           ).map(([title, body, Icon]) => (
             <li key={title}>
-              <Card className="h-full w-full border-border bg-white shadow-sm">
-                <CardHeader className="flex-row items-start gap-3 space-y-0 px-4 sm:px-6">
+              <Card className="h-full min-h-[8.5rem] w-full">
+                <CardHeader className="flex-row items-start gap-3 space-y-0 px-4 pb-6 pt-5 sm:px-6 sm:pb-7 sm:pt-6">
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-teal/10">
                     <Icon className="size-4 text-teal" />
                   </span>
                   <div className="min-w-0 text-left">
-                    <CardTitle className="text-base">{title}</CardTitle>
-                    <CardDescription className="mt-1">{body}</CardDescription>
+                    <CardTitle className="text-base leading-snug">{title}</CardTitle>
+                    <CardDescription className="mt-1.5 leading-relaxed">{body}</CardDescription>
                   </div>
                 </CardHeader>
               </Card>
@@ -423,7 +412,7 @@ export default async function HomePage() {
 
       {/* FINAL CTA */}
       <section className="mx-auto w-full max-w-3xl px-4 py-12 sm:py-20">
-        <Card className="w-full border-orange/20 bg-gradient-to-b from-white to-orange/5 shadow-sm">
+        <Card className="w-full bg-gradient-to-b from-card to-orange/5">
           <CardHeader className="px-4 text-center sm:px-6">
             <CardDescription className="text-xs font-semibold uppercase tracking-[0.2em]">
               Ready to Start?
@@ -527,13 +516,15 @@ function StatCard({
   label: string;
 }) {
   return (
-    <Card className="w-full border-border bg-white text-center shadow-sm">
-      <CardContent className="px-4 pt-5 sm:px-6">
-        <span className="mx-auto flex size-10 items-center justify-center rounded-full bg-orange/10">
+    <Card className="h-full min-h-[11.5rem] w-full text-center sm:min-h-[12.5rem]">
+      <CardContent className="flex h-full flex-col items-center px-4 pb-6 pt-6 sm:px-6 sm:pb-7 sm:pt-7">
+        <span className="flex size-10 items-center justify-center rounded-xl bg-orange/10">
           <Icon className="size-5 text-orange" />
         </span>
-        <p className="mt-3 text-2xl font-black tabular text-orange">{kicker}</p>
-        <p className="mt-1 text-sm text-muted-label">{label}</p>
+        <p className="text-metric mt-4 text-orange">{kicker}</p>
+        <p className="mt-auto pt-3 text-sm leading-snug text-muted-label">
+          {label}
+        </p>
       </CardContent>
     </Card>
   );
@@ -549,13 +540,13 @@ function LearnBlock({
   body: string;
 }) {
   return (
-    <Card className="h-full w-full border-border bg-white shadow-sm">
-      <CardHeader className="flex-row items-start gap-3 space-y-0 px-4 sm:px-6">
+    <Card className="h-full min-h-[9rem] w-full">
+      <CardHeader className="flex-row items-start gap-3 space-y-0 px-4 pb-6 pt-5 sm:px-6 sm:pb-7 sm:pt-6">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-orange/10">
           {icon}
         </span>
         <div className="min-w-0 text-left">
-          <CardTitle className="text-base sm:text-lg">{title}</CardTitle>
+          <CardTitle className="text-base leading-snug sm:text-lg">{title}</CardTitle>
           <CardDescription className="mt-2 leading-relaxed">{body}</CardDescription>
         </div>
       </CardHeader>
@@ -574,11 +565,11 @@ function FeedStep({
 }) {
   return (
     <li>
-      <Card className="h-full w-full border-border bg-white text-center shadow-sm">
-        <CardContent className="px-4 pt-5 sm:px-6">
+      <Card className="h-full min-h-[12rem] w-full text-center">
+        <CardContent className="flex h-full flex-col px-4 pb-6 pt-6 sm:px-6 sm:pb-7 sm:pt-7">
           <p className="text-sm font-bold tabular text-orange">{n}</p>
-          <h3 className="mt-2 text-lg font-bold">{title}</h3>
-          <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted-label">
+          <h3 className="mt-3 text-lg font-bold leading-snug">{title}</h3>
+          <p className="mx-auto mt-auto max-w-xs pt-3 text-sm leading-relaxed text-muted-label">
             {body}
           </p>
         </CardContent>
@@ -589,13 +580,13 @@ function FeedStep({
 
 function Quote({ body, who }: { body: string; who: string }) {
   return (
-    <figure>
-      <Card className="h-full w-full border-border bg-white shadow-sm">
-        <CardContent className="px-4 pt-5 sm:px-6">
+    <figure className="h-full">
+      <Card className="h-full min-h-[14rem] w-full">
+        <CardContent className="flex h-full flex-col px-4 pb-6 pt-6 sm:px-6 sm:pb-7 sm:pt-7">
           <blockquote className="text-sm leading-relaxed text-ink/80">
             &ldquo;{body}&rdquo;
           </blockquote>
-          <figcaption className="mt-5 flex items-center justify-center gap-3 text-xs text-muted-label">
+          <figcaption className="mt-auto flex items-center justify-center gap-3 pt-6 text-xs text-muted-label">
             <span className="flex size-8 items-center justify-center rounded-full bg-orange text-[11px] font-black text-white">
               X
             </span>
@@ -616,7 +607,7 @@ function SetupCard() {
     ["Capital Protection Mode", "Enabled"],
   ];
   return (
-    <Card className="w-full border-border bg-white shadow-sm">
+    <Card className="w-full">
       <CardHeader className="flex-col gap-3 space-y-0 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-black text-gold">

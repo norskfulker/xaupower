@@ -11,12 +11,12 @@ export function AdminStatCard({
     <div
       className={
         highlight
-          ? "rounded-lg border-2 border-orange bg-orange/10 p-5"
-          : "rounded-lg bg-white p-5 shadow-sm"
+          ? "flex h-full min-h-[10.5rem] flex-col rounded-2xl bg-orange/10 p-6 shadow-card ring-1 ring-orange/30 sm:min-h-[11.5rem] sm:p-7"
+          : "flex h-full min-h-[10.5rem] flex-col rounded-2xl bg-card p-6 shadow-card sm:min-h-[11.5rem] sm:p-7"
       }
     >
-      <p className="text-xs uppercase tracking-wide text-muted-label">{label}</p>
-      <p className="mt-2 text-3xl font-extrabold tabular text-ink">{value}</p>
+      <p className="text-kicker">{label}</p>
+      <p className="text-metric mt-4 break-words text-ink">{value}</p>
     </div>
   );
 }

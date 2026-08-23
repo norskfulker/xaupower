@@ -46,14 +46,11 @@ export default async function AdminPage() {
   return (
     <>
       <div>
-        <h1 className="text-2xl font-bold text-ink">Overview</h1>
-        <p className="text-sm text-muted-label">
-          Two paths: pine script deposits, and VPS bot setup plus trading
-          balance. Deposits and payouts both need approve or reject.
-        </p>
+        <p className="text-kicker">Admin</p>
+        <h1 className="text-display mt-1 text-3xl sm:text-4xl">Overview</h1>
       </div>
 
-      <section id="stats" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section id="stats" className="grid items-stretch gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
         <AdminStatCard label="Total revenue" value={formatUsd(totalRevenue)} />
         <AdminStatCard
           label="Active users"

@@ -120,17 +120,13 @@ export function PayoutReviewQueue({
   }
 
   return (
-    <section id="payouts" className="space-y-4">
+    <section id="payouts" className="space-y-6">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-ink">
+          <p className="text-kicker">Queue</p>
+          <h2 className="mt-1 text-xl font-bold text-ink">
             Trading balance payout review
           </h2>
-          <p className="text-sm text-ink/60">
-            These are withdrawals of VPS bot trading capital only. Approve to
-            send, or reject with a note to restore the user balance. Signal
-            purchases do not create a payout.
-          </p>
         </div>
         <span className="rounded-full bg-orange/20 px-3 py-1 text-xs font-semibold text-orange">
           {sortedQueue.length} pending
@@ -138,7 +134,7 @@ export function PayoutReviewQueue({
       </div>
 
       {sortedQueue.length === 0 ? (
-        <div className="rounded-lg bg-white p-6 text-sm text-muted-label shadow-sm">
+        <div className="rounded-2xl bg-card p-6 text-sm text-muted-label shadow-card sm:p-7">
           Queue is clear. New withdrawal requests will appear here.
         </div>
       ) : (
@@ -146,7 +142,7 @@ export function PayoutReviewQueue({
           {sortedQueue.map((p) => (
             <li
               key={p.id}
-              className="rounded-lg border border-orange/30 bg-white p-4"
+              className="rounded-2xl bg-orange/5 p-5 ring-1 ring-orange/30"
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -238,7 +234,7 @@ export function PayoutReviewQueue({
             <li
               key={p.id}
               className={cn(
-                "rounded-lg border border-border bg-white px-4 py-3 text-sm"
+                "rounded-2xl bg-card px-4 py-3.5 text-sm shadow-card"
               )}
             >
               <span className="tabular font-medium">

@@ -38,23 +38,19 @@ export default async function TransactionsPage() {
   const daysLeft = daysRemaining(pkgRes.data?.expires_at);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Transactions</h1>
-        <p className="text-sm text-muted-label">
-          Read-only ledger of deposits, payouts, and package purchases.
-        </p>
+        <p className="text-kicker">Ledger</p>
+        <h1 className="text-display mt-1 text-3xl sm:text-4xl">Transactions</h1>
       </div>
       {terms && (
-        <div className="rounded-lg bg-white shadow-sm p-5">
-          <p className="text-xs uppercase tracking-wide text-muted-label">
-            Purchased package terms
-          </p>
-          <p className="mt-1 text-lg font-bold text-ink">
+        <div className="rounded-2xl bg-card p-6 shadow-card sm:p-7">
+          <p className="text-kicker">Purchased package terms</p>
+          <p className="mt-3 text-xl font-black tracking-tight text-ink">
             {label}
             {daysLeft != null ? ` · ${daysLeft} days left` : ""}
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid items-stretch gap-4 sm:grid-cols-3 sm:gap-5">
             <Term
               label="Bot profit target"
               value={`${terms.profit_target_pct}%`}
@@ -74,9 +70,11 @@ export default async function TransactionsPage() {
 
 function Term({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-white p-3 shadow-sm">
-      <p className="text-xs uppercase tracking-wide text-muted-label">{label}</p>
-      <p className="mt-1 text-lg font-extrabold tabular text-orange">{value}</p>
+    <div className="flex min-h-[6.5rem] flex-col rounded-2xl bg-canvas p-4 sm:p-5">
+      <p className="text-kicker">{label}</p>
+      <p className="mt-3 text-2xl font-black tabular text-orange sm:text-3xl">
+        {value}
+      </p>
     </div>
   );
 }

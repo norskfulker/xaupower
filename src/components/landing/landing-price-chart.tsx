@@ -120,20 +120,20 @@ export function LandingPriceChart({
   const fillPath = `${linePath} L ${CHART_WIDTH} ${CHART_HEIGHT} L 0 ${CHART_HEIGHT} Z`;
 
   return (
-    <div className="w-full rounded-2xl bg-ink p-3 text-white shadow-sm sm:p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div className="w-full rounded-2xl bg-ink p-4 text-white shadow-card sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40 sm:text-xs sm:tracking-[0.18em]">
             <span className="size-2 shrink-0 rounded-full bg-emerald-400" /> Live
             VPS Engine Feed
           </p>
-          <p className="mt-1 flex items-center gap-2">
+          <p className="mt-3 flex items-center gap-2">
             <GoldIcon className="size-5 shrink-0" />
-            <span className="text-2xl font-black tabular text-gold sm:text-3xl">
+            <span className="text-metric text-gold">
               {price == null ? "—" : formatPrice(price, 2)}
             </span>
           </p>
-          <p className="mt-1 text-[11px] text-white/40 sm:text-xs">
+          <p className="mt-2 text-[11px] leading-snug text-white/40 sm:text-xs">
             XAU/USD · Automated execution target
             {stale && asOf && (
               <span className="block sm:ml-1 sm:inline">· as of {asOf}</span>
@@ -144,7 +144,7 @@ export function LandingPriceChart({
           Auto Long
         </span>
       </div>
-      <div className="mt-3 flex min-w-0 gap-2 sm:mt-4 sm:gap-3">
+      <div className="mt-4 flex min-w-0 gap-2 sm:mt-5 sm:gap-3">
         <div className="flex w-9 shrink-0 flex-col justify-between py-1 text-[9px] tabular text-white/30 sm:w-10 sm:text-[10px]">
           {labels.map((label) => (
             <span key={label} className="leading-none">
@@ -154,7 +154,7 @@ export function LandingPriceChart({
         </div>
         <svg
           viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-          className="h-36 min-w-0 flex-1 sm:h-52"
+          className="h-40 min-w-0 flex-1 sm:h-56"
           aria-hidden
           preserveAspectRatio="none"
         >

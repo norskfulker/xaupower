@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PackageVariantPicker } from "@/components/packages/package-variant-picker";
+import { SurfaceCard } from "@/components/ui/surface-card";
 import {
   Dialog,
   DialogContent,
@@ -34,16 +35,11 @@ export function PackagesCatalog({
 
   return (
     <>
-      <div className="overflow-hidden rounded-lg bg-white p-5 text-ink shadow-sm sm:p-6">
-        <div>
-          <h2 className="text-lg font-bold text-ink">Buy Bot</h2>
-          <p className="mt-1 max-w-xl text-sm text-muted-label">
-            Choose a VPS bot plan. Tap a plan to view terms and continue to
-            checkout.
-          </p>
-        </div>
+      <SurfaceCard padding="lg">
+        <p className="text-kicker">Plans</p>
+        <h2 className="mt-2 text-2xl font-black tracking-tight text-ink">Buy Bot</h2>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        <div className="mt-8 grid items-stretch gap-4 sm:gap-6 lg:grid-cols-3">
           {ordered.map((pkg) => {
             const standard = variants.find(
               (v) => v.package_id === pkg.id && v.risk_tier === "standard"
@@ -54,24 +50,23 @@ export function PackagesCatalog({
                 type="button"
                 onClick={() => setSelected(pkg)}
                 className={cn(
-                  "relative flex flex-col rounded-lg border p-5 text-left transition hover:border-orange/50 hover:bg-orange/5",
+                  "relative flex h-full min-h-[18rem] flex-col rounded-2xl p-6 text-left shadow-card transition hover:shadow-float sm:min-h-[20rem] sm:p-7",
                   pkg.is_featured
-                    ? "border-orange bg-orange/10"
-                    : "border-border bg-canvas"
+                    ? "bg-orange/10 ring-1 ring-orange/30"
+                    : "bg-canvas"
                 )}
               >
                 {pkg.is_featured && (
-                  <span className="absolute -top-2.5 left-4 rounded-lg bg-orange px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                  <span className="absolute -top-2.5 left-4 rounded-xl bg-orange px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
                     Most chosen
                   </span>
                 )}
-                <p className="text-sm font-semibold text-orange">{pkg.name}</p>
-                <p className="mt-2 text-3xl font-extrabold tabular text-ink">
+                <p className="text-kicker text-orange">{pkg.name}</p>
+                <p className="text-metric mt-4 text-ink">
                   {formatUsd(pkg.price_usd)}
                 </p>
-                <p className="text-xs text-muted-label">30-day access</p>
-                <p className="mt-3 text-sm text-ink/70">{pkg.tagline}</p>
-                <ul className="mt-4 space-y-2 text-sm text-ink/80">
+                <p className="mt-2 text-xs text-muted-label">30-day access</p>
+                <ul className="mt-5 space-y-2.5 text-sm text-ink/80">
                   {(pkg.features ?? []).slice(0, 3).map((feature) => (
                     <li key={feature} className="flex gap-2">
                       <Check className="mt-0.5 size-4 shrink-0 text-teal" />
@@ -80,19 +75,15 @@ export function PackagesCatalog({
                   ))}
                 </ul>
                 {standard && (
-                  <p className="mt-4 text-xs text-muted-label">
-                    Standard term · {RISK_LABEL.standard} · bot lot{" "}
-                    {standard.max_lot_size}
+                  <p className="mt-auto pt-5 text-xs text-muted-label">
+                    {RISK_LABEL.standard} · lot {standard.max_lot_size}
                   </p>
                 )}
-                <p className="mt-4 text-xs font-semibold text-orange">
-                  View details →
-                </p>
               </button>
             );
           })}
         </div>
-      </div>
+      </SurfaceCard>
 
       <Dialog
         open={Boolean(selected)}
@@ -100,26 +91,24 @@ export function PackagesCatalog({
           if (!open) setSelected(null);
         }}
       >
-        <DialogContent className="max-h-[90vh] w-full max-w-lg overflow-y-auto border-border bg-white p-6 text-ink sm:max-w-lg sm:rounded-2xl">
+        <DialogContent className="max-h-[90vh] w-full max-w-lg overflow-y-auto border-border bg-white text-ink">
           {selected && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-xl font-bold text-ink">
-                  {selected.name}
-                </DialogTitle>
+                <DialogTitle>{selected.name}</DialogTitle>
                 <DialogDescription className="text-muted-label">
                   {selected.tagline || "VPS bot plan details and risk terms."}
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="mt-2">
-                <p className="text-3xl font-extrabold tabular text-orange">
+              <div className="mt-3">
+                <p className="text-metric text-orange">
                   {formatUsd(selected.price_usd)}
                 </p>
-                <p className="text-xs text-muted-label">30-day access</p>
+                <p className="mt-2 text-xs text-muted-label">30-day access</p>
               </div>
 
-              <ul className="mt-4 space-y-2 text-sm text-ink/80">
+              <ul className="mt-5 space-y-2.5 text-sm text-ink/80">
                 {(selected.features ?? []).map((feature) => (
                   <li key={feature} className="flex gap-2">
                     <Check className="mt-0.5 size-4 shrink-0 text-teal" />

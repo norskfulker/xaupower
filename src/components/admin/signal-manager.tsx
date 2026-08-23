@@ -78,16 +78,13 @@ export function SignalManager({
   }
 
   return (
-    <section id="signals" className="space-y-6">
+    <section id="signals" className="space-y-8">
       <div>
-        <h2 className="text-xl font-bold text-ink">Signal management</h2>
-        <p className="text-sm text-ink/60">
-          Post XAUUSD (gold) signals. They push to every user dashboard via
-          Realtime.
-        </p>
+        <p className="text-kicker">Admin</p>
+        <h2 className="mt-1 text-xl font-bold text-ink">Signal management</h2>
       </div>
 
-      <div className="grid gap-4 rounded-lg bg-white p-5 shadow-sm md:grid-cols-5">
+      <div className="grid gap-4 rounded-2xl bg-card p-6 shadow-card md:grid-cols-5 sm:p-7">
         <div className="space-y-2">
           <Label className="text-ink/70">Pair</Label>
           <div className="flex h-9 items-center rounded-md border border-border bg-canvas px-3 text-sm text-ink">
@@ -157,7 +154,7 @@ export function SignalManager({
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-2xl bg-card shadow-card">
         <table className="w-full min-w-[800px] text-left text-sm">
           <thead className="bg-canvas text-xs uppercase text-ink/50">
             <tr>

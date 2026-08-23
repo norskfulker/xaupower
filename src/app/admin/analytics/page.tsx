@@ -43,10 +43,8 @@ export default async function AdminAnalyticsPage({
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Analytics</h1>
-          <p className="text-sm text-muted-label">
-            Charts only — filter applies to every breakdown on this page.
-          </p>
+          <p className="text-kicker">Admin</p>
+          <h1 className="text-display mt-1 text-3xl sm:text-4xl">Analytics</h1>
         </div>
         <AnalyticsFilters
           range={range}

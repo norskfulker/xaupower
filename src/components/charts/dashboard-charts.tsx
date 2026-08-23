@@ -70,8 +70,8 @@ export function PortfolioGrowthChart({
   };
 
   return (
-    <div className="h-64 w-full rounded-2xl bg-white p-4 shadow-sm">
-      <h3 className="mb-2 px-1 text-sm font-semibold text-ink">
+    <div className="min-h-[17rem] w-full rounded-2xl bg-card p-5 shadow-card sm:p-6">
+      <h3 className="mb-3 px-1 text-sm font-semibold text-ink">
         Portfolio growth
       </h3>
       <Chart
@@ -132,8 +132,8 @@ export function DailyPnlChart({
   };
 
   return (
-    <div className="h-64 w-full rounded-2xl bg-white p-4 shadow-sm">
-      <h3 className="mb-2 px-1 text-sm font-semibold text-ink">Daily P&amp;L</h3>
+    <div className="min-h-[17rem] w-full rounded-2xl bg-card p-5 shadow-card sm:p-6">
+      <h3 className="mb-3 px-1 text-sm font-semibold text-ink">Daily P&amp;L</h3>
       <Chart
         options={options}
         series={[{ name: "P&L", data: data.map((d) => d.pnl) }]}
@@ -164,8 +164,8 @@ export function RevenueChart({
   };
 
   return (
-    <div className="h-72 w-full rounded-lg bg-white p-4 shadow-sm">
-      <h3 className="mb-2 px-1 text-sm font-semibold text-ink">
+    <div className="min-h-[19rem] w-full rounded-2xl bg-card p-5 shadow-card sm:p-6">
+      <h3 className="mb-3 px-1 text-sm font-semibold text-ink">
         Revenue by week
       </h3>
       <Chart

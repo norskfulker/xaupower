@@ -15,17 +15,17 @@ import { Suspense } from "react";
 function DashboardFallback() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid items-stretch gap-4 sm:grid-cols-3 sm:gap-6">
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="h-28 animate-pulse rounded-lg bg-white shadow-sm"
+            className="min-h-[11rem] animate-pulse rounded-2xl bg-card shadow-card sm:min-h-[12.5rem]"
           />
         ))}
       </div>
-      <div className="grid gap-4 lg:grid-cols-5">
-        <div className="h-64 animate-pulse rounded-lg bg-white shadow-sm lg:col-span-3" />
-        <div className="h-64 animate-pulse rounded-lg bg-white shadow-sm lg:col-span-2" />
+      <div className="grid items-stretch gap-4 lg:grid-cols-2 sm:gap-6">
+        <div className="min-h-72 animate-pulse rounded-2xl bg-card shadow-card" />
+        <div className="min-h-72 animate-pulse rounded-2xl bg-card shadow-card" />
       </div>
     </div>
   );

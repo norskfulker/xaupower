@@ -1,12 +1,13 @@
-import { getAuthUser, createClient, getPriceQuotes } from "@/lib/supabase/server";
-import { formatUsd, daysRemaining, RISK_LABEL, formatPrice } from "@/lib/format";
-import { PriceSparkline } from "@/components/charts/dashboard-charts";
+import { getAuthUser, createClient } from "@/lib/supabase/server";
+import { formatUsd, daysRemaining, RISK_LABEL } from "@/lib/format";
 import { StatCard } from "@/components/ui/stat-card";
+import { SurfaceCard } from "@/components/ui/surface-card";
 import { AccessHistoryCards } from "@/components/dashboard/access-history-cards";
 import { DashboardQuickActions } from "@/components/dashboard/dashboard-quick-actions";
+import { DashboardHowItWorks } from "@/components/dashboard/dashboard-how-it-works";
 import type { UserPackage, WalletBalance } from "@/lib/types";
 import { packageDisplayLabel, resolveUserPackageTerms } from "@/lib/package-terms";
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import { Banknote, Boxes, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
@@ -15,67 +16,43 @@ export default async function DashboardPage() {
   const supabase = createClient();
   const user = await getAuthUser();
 
-  const [userPkgRes, historyRes, walletRes, closedSignalsRes, quotes] =
-    await Promise.all([
-      supabase
-        .from("user_packages")
-        .select(
-          "purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, packages(name))"
-        )
-        .eq("user_id", user!.id)
-        .eq("status", "active")
-        .maybeSingle(),
-      supabase
-        .from("user_packages")
-        .select(
-          "id, status, purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, packages(name), max_lot_size, profit_target_pct, max_drawdown_pct)"
-        )
-        .eq("user_id", user!.id)
-        .order("purchased_at", { ascending: false }),
-      supabase
-        .from("wallet_balances")
-        .select("available_usd, pending_usd")
-        .eq("user_id", user!.id)
-        .maybeSingle(),
-      supabase
-        .from("signals")
-        .select("pnl_usd, closed_at")
-        .eq("status", "closed")
-        .gte("closed_at", subDays(new Date(), 7).toISOString()),
-      getPriceQuotes(),
-    ]);
+  const [userPkgRes, historyRes, walletRes] = await Promise.all([
+    supabase
+      .from("user_packages")
+      .select(
+        "purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, packages(name))"
+      )
+      .eq("user_id", user!.id)
+      .eq("status", "active")
+      .maybeSingle(),
+    supabase
+      .from("user_packages")
+      .select(
+        "id, status, purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, packages(name), max_lot_size, profit_target_pct, max_drawdown_pct)"
+      )
+      .eq("user_id", user!.id)
+      .order("purchased_at", { ascending: false }),
+    supabase
+      .from("wallet_balances")
+      .select("available_usd, pending_usd, profit_pips")
+      .eq("user_id", user!.id)
+      .maybeSingle(),
+  ]);
 
   const activePkg = userPkgRes.data;
   const history = (historyRes.data ?? []) as unknown as UserPackage[];
   const wallet = walletRes.data as Pick<
     WalletBalance,
-    "available_usd" | "pending_usd"
+    "available_usd" | "pending_usd" | "profit_pips"
   > | null;
-
-  const feedPnl7d = (closedSignalsRes.data ?? []).reduce(
-    (sum, s) => sum + Number(s.pnl_usd ?? 0),
-    0
-  );
-
-  const dailyPnl = Array.from({ length: 7 }).map((_, i) => {
-    const day = subDays(new Date(), 6 - i);
-    const key = format(day, "yyyy-MM-dd");
-    const pnl = (closedSignalsRes.data ?? [])
-      .filter(
-        (s) =>
-          s.closed_at && format(new Date(s.closed_at), "yyyy-MM-dd") === key
-      )
-      .reduce((sum, s) => sum + Number(s.pnl_usd ?? 0), 0);
-    return { date: format(day, "MMM d"), pnl };
-  });
 
   const daysLeft = daysRemaining(activePkg?.expires_at);
   const terms = resolveUserPackageTerms(
     (activePkg ?? {}) as Pick<UserPackage, "variant_snapshot" | "package_variants">
   );
   const name = packageDisplayLabel(terms);
-  const quote = quotes.find((q) => q.pair === "XAUUSD");
-  const change = Number(quote?.change_pct ?? 0);
+  const botActive = Boolean(name);
+  const profitPips = Number(wallet?.profit_pips ?? 0);
 
   let elapsedPct = 0;
   if (activePkg?.purchased_at && activePkg.expires_at) {
@@ -86,8 +63,10 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-3">
+    <div className="space-y-8">
+      <DashboardQuickActions />
+
+      <div className="grid items-stretch gap-4 sm:grid-cols-3 sm:gap-6">
         <StatCard
           label="Available balance"
           value={formatUsd(wallet?.available_usd)}
@@ -103,56 +82,28 @@ export default async function DashboardPage() {
               : "No active access period"
           }
           icon={Boxes}
+          valueClassName={botActive ? "text-teal" : undefined}
         />
         <StatCard
-          label="Feed performance"
-          value={`${feedPnl7d >= 0 ? "+" : ""}${formatUsd(feedPnl7d)}`}
-          hint="7-day feed performance"
+          label="Profit in pips"
+          value={`${profitPips >= 0 ? "+" : ""}${profitPips.toFixed(1)}`}
+          hint="Updated by admin"
           icon={TrendingUp}
+          valueClassName={profitPips >= 0 ? "text-teal" : "text-hotpink"}
         />
       </div>
 
-      <DashboardQuickActions />
+      <DashboardHowItWorks />
 
-      <div className="rounded-lg bg-white p-5 shadow-sm">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-label">
-              XAUUSD
-            </p>
-            <p className="mt-2 text-4xl font-extrabold tabular text-orange">
-              {quote ? formatPrice(quote.price, 2) : "—"}
-            </p>
-            <p
-              className={`mt-1 text-sm tabular ${
-                change >= 0 ? "text-teal" : "text-hotpink"
-              }`}
-            >
-              {change >= 0 ? "+" : ""}
-              {change.toFixed(2)}%
-            </p>
-          </div>
-          <span className="rounded-lg bg-orange/10 px-2.5 py-1 text-[11px] font-semibold text-orange">
-            Live
-          </span>
-        </div>
-        <div className="mt-4">
-          <PriceSparkline data={dailyPnl} />
-          <p className="mt-1 text-[11px] text-muted-label">
-            Sparkline shows 7-day signal-feed P&amp;L, not a personal yield.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-lg bg-white p-5 shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-muted-label">
-            Bot details
-          </p>
+      <div className="grid items-stretch gap-4 sm:gap-6 lg:grid-cols-2">
+        <SurfaceCard className="flex h-full flex-col">
+          <p className="text-kicker">Bot details</p>
           {terms && activePkg ? (
             <>
-              <h2 className="mt-2 text-2xl font-bold text-ink">{name}</h2>
-              <dl className="mt-4 space-y-3 text-sm">
+              <h2 className="mt-3 text-2xl font-black leading-tight tracking-tight text-ink">
+                {name}
+              </h2>
+              <dl className="mt-5 space-y-3.5 text-sm">
                 <div className="flex justify-between gap-4">
                   <dt className="text-muted-label">Plan</dt>
                   <dd className="font-semibold text-ink">{terms.package_name}</dd>
@@ -198,7 +149,7 @@ export default async function DashboardPage() {
               </dl>
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link
-                  href="/dashboard/payment"
+                  href="/dashboard/packages"
                   prefetch={false}
                   className={buttonVariants({
                     className: "bg-orange text-white hover:bg-orange/90",
@@ -224,7 +175,7 @@ export default async function DashboardPage() {
               No active bot. Choose one under Buy Bot.
             </p>
           )}
-        </div>
+        </SurfaceCard>
 
         <AccessHistoryCards rows={history} />
       </div>

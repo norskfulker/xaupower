@@ -83,24 +83,20 @@ export function WalletSettingsForm({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Deposit wallets</h1>
-        <p className="mt-1 text-sm text-ink/60">
-          Maintain three networks. BTC is Bitcoin. ERC20 is the 0x address used
-          for ETH, BNB, and USDT/USDC on ERC20 and BEP20. TRC20 is the Tron
-          address for TRX and USDT/USDC TRC20.
-        </p>
+        <p className="text-kicker">Admin</p>
+        <h1 className="text-display mt-1 text-3xl sm:text-4xl">Deposit wallets</h1>
       </div>
 
       {hasPlaceholder && (
-        <div className="rounded-xl border border-orange/40 bg-orange/10 px-4 py-3 text-sm text-orange">
+        <div className="rounded-2xl bg-orange/10 px-4 py-3 text-sm text-orange ring-1 ring-orange/40">
           One or more addresses still use the seeded PLACEHOLDER_ values.
           Replace them with live wallet addresses before go-live.
         </div>
       )}
 
-      <ul className="space-y-4">
+      <ul className="space-y-5">
         {rows.map((row) => {
           const showQr =
             row.address.trim().length > 8 &&
@@ -108,7 +104,7 @@ export function WalletSettingsForm({
           return (
             <li
               key={row.id}
-              className="rounded-lg border border-border bg-white p-4 shadow-sm"
+              className="rounded-2xl bg-card p-6 shadow-card sm:p-7"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>

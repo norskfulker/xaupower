@@ -146,6 +146,7 @@ export interface WalletBalance {
   user_id: string;
   available_usd: number;
   pending_usd: number;
+  profit_pips?: number;
   updated_at: string;
 }
 

@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatRail, PAYMENT_RAILS, isPaymentRail, type PaymentRail } from "@/lib/wallets";
-import { validateCryptoAddress } from "@/lib/address-validation";
+import { validateCryptoAddress, addressNetworkHint, isValidCryptoAddress } from "@/lib/address-validation";
 import type {
   NotificationPreferences,
   SavedPayoutAddress,
 } from "@/lib/types";
 import { CurrencyNetworkFields } from "@/components/finance/currency-network-fields";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export function ProfileSettings({
   userId,
@@ -52,7 +53,7 @@ export function ProfileSettings({
   }
 
   return (
-    <section className="rounded-lg bg-white shadow-sm p-5 text-ink sm:p-6">
+    <section className="rounded-2xl bg-card p-6 text-ink shadow-card sm:p-7">
       <h2 className="text-lg font-bold text-ink">Profile</h2>
       <form onSubmit={save} className="mt-4 grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
@@ -200,7 +201,7 @@ export function SecuritySettings() {
   }
 
   return (
-    <section className="rounded-lg bg-white shadow-sm p-5 text-ink sm:p-6">
+    <section className="rounded-2xl bg-card p-6 text-ink shadow-card sm:p-7">
       <h2 className="text-lg font-bold text-ink">Security</h2>
       <div className="mt-4 flex items-center justify-between gap-4 rounded-xl bg-canvas px-4 py-3">
         <div>
@@ -317,7 +318,7 @@ export function NotificationSettings({
   }
 
   return (
-    <section className="rounded-lg bg-white shadow-sm p-5 text-ink sm:p-6">
+    <section className="rounded-2xl bg-card p-6 text-ink shadow-card sm:p-7">
       <h2 className="text-lg font-bold text-ink">Notifications</h2>
       <p className="mt-1 text-sm text-muted-label">
         Emails about your own deposit and payout submissions.
@@ -454,7 +455,7 @@ export function SavedAddressesSettings({
   }
 
   return (
-    <section className="rounded-lg bg-white shadow-sm p-5 text-ink sm:p-6">
+    <section className="rounded-2xl bg-card p-6 text-ink shadow-card sm:p-7">
       <h2 className="text-lg font-bold text-ink">Saved payout addresses</h2>
       <p className="mt-1 text-sm text-muted-label">
         Reuse a crypto destination when you request a payout. Crypto only.
@@ -534,9 +535,23 @@ export function SavedAddressesSettings({
             id="addr-value"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="border-border bg-canvas text-ink tabular"
+            className={cn(
+              "border-border bg-canvas text-ink tabular",
+              address.trim() &&
+                (isValidCryptoAddress(rail, address)
+                  ? "border-teal"
+                  : "border-hotpink")
+            )}
             placeholder="Wallet address"
           />
+          <p className="text-xs text-muted-label">
+            Format check · {addressNetworkHint(rail)}
+          </p>
+          {address.trim() && !isValidCryptoAddress(rail, address) && (
+            <p className="text-xs text-hotpink">
+              {validateCryptoAddress(rail, address)}
+            </p>
+          )}
         </div>
         <div>
           <Button

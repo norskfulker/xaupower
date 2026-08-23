@@ -15,11 +15,14 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
   }, [payments, status]);
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold text-ink">Payments</h2>
+        <div>
+          <p className="text-kicker">Admin</p>
+          <h2 className="mt-1 text-display text-3xl sm:text-4xl">Payments</h2>
+        </div>
         <select
-          className="rounded-lg border border-border bg-canvas px-2 py-1 text-sm text-ink"
+          className="h-11 rounded-xl border border-border bg-canvas px-3 text-sm text-ink"
           value={status}
           onChange={(e) => setStatus(e.target.value)}
         >
@@ -34,7 +37,7 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
           <option value="expired">Expired</option>
         </select>
       </div>
-      <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-2xl bg-card shadow-card">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="bg-canvas text-xs uppercase text-ink/50">
             <tr>

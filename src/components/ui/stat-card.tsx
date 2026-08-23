@@ -7,30 +7,44 @@ export function StatCard({
   hint,
   icon: Icon,
   className,
+  valueClassName,
 }: {
   label: string;
   value: string;
   hint?: string;
   icon?: LucideIcon;
   className?: string;
+  valueClassName?: string;
 }) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-lg bg-white p-5 shadow-sm",
+        "relative flex h-full min-h-[11rem] flex-col rounded-2xl bg-card p-6 shadow-card sm:min-h-[12.5rem] sm:p-7",
         className
       )}
     >
       {Icon && (
-        <span className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-lg bg-orange/10 text-orange">
+        <span className="absolute right-5 top-5 flex size-8 items-center justify-center rounded-xl bg-orange/10 text-orange">
           <Icon className="size-4" />
         </span>
       )}
-      <p className="text-xs uppercase tracking-wide text-muted-label">{label}</p>
-      <p className="mt-3 pr-12 text-3xl font-extrabold tabular text-orange">
+      <p className="text-kicker">{label}</p>
+      <p
+        className={cn(
+          "text-metric mt-4 break-words text-orange",
+          Icon && "pr-10",
+          valueClassName
+        )}
+      >
         {value}
       </p>
-      {hint && <p className="mt-2 text-xs text-muted-label">{hint}</p>}
+      {hint ? (
+        <p className="mt-auto pt-3 text-xs leading-snug text-muted-label">
+          {hint}
+        </p>
+      ) : (
+        <div className="mt-auto pt-3" aria-hidden />
+      )}
     </div>
   );
 }

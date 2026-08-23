@@ -35,7 +35,7 @@
     --border: 36 22% 84%;
     --input: 36 22% 84%;
     --ring: 38 72% 42%;
-    --radius: 1rem;
+    --radius: 1.25rem;
     --chart-1: 38 72% 42%;
     --chart-2: 158 42% 36%;
     --chart-3: 42 65% 52%;
@@ -54,6 +54,30 @@
 
   .tabular {
     font-variant-numeric: tabular-nums;
+  }
+
+  .text-kicker {
+    @apply text-[11px] font-bold uppercase tracking-widest text-muted-label;
+  }
+
+  .text-display {
+    @apply text-4xl font-black leading-[1.1] tracking-tight sm:text-5xl;
+  }
+
+  .text-metric {
+    @apply text-4xl font-black leading-none tracking-tight tabular sm:text-5xl;
+  }
+
+  .shadow-float {
+    box-shadow: 0 8px 32px rgba(30, 25, 14, 0.08);
+  }
+
+  .shadow-card {
+    box-shadow: 0 2px 16px rgba(30, 25, 14, 0.06);
+  }
+
+  .surface-float {
+    @apply rounded-2xl border border-border/50 bg-white/90 shadow-float backdrop-blur-md;
   }
 
   input[type="range"] {

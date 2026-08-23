@@ -21,7 +21,6 @@ import {
   MIN_BALANCE_TOPUP_USD,
   PLACEHOLDER_DEPOSIT_PREFIX,
   SIGNAL_PRICE_USD,
-  TRADINGVIEW_CHART_URL,
 } from "@/lib/types";
 import { CurrencyNetworkFields } from "@/components/finance/currency-network-fields";
 import {
@@ -231,15 +230,15 @@ export function PaymentFlow({
     },
     balance: {
       form: "Deposit trading balance",
-      hint: "Send capital the VPS bot will trade with. Admin must approve the deposit before it credits. You can later withdraw it from Payout.",
+      hint: "Send capital the VPS bot will trade with. After approval it credits your wallet. Withdraw anytime from Cashier.",
       success: "Trading balance credited",
-      successBody: "The bot can now trade this capital. Withdraw from Payout whenever you want — that also needs admin approval.",
+      successBody: "The bot can now trade this capital. Withdraw from Cashier whenever you want.",
     },
     signal: {
-      form: "Buy TradingView pine script",
-      hint: "Pay once for 30 days. After admin approval you get the XAUUSD pine script. This path has no VPS and no trading-balance payout.",
-      success: "Pine script access granted",
-      successBody: "Open TradingView, load XAUUSD, and apply the XAUPower pine script.",
+      form: "Legacy signals",
+      hint: "This purchase path is no longer offered.",
+      success: "Access recorded",
+      successBody: "Contact support if you need help with an older purchase.",
     },
   }[kind];
 
@@ -251,23 +250,17 @@ export function PaymentFlow({
         </div>
         <h3 className="mt-4 text-2xl font-extrabold text-ink">{titles.success}</h3>
         <p className="mt-2 text-sm text-muted-label">{titles.successBody}</p>
-        {kind === "signal" && (
-          <a
-            href={TRADINGVIEW_CHART_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-6 inline-flex h-9 items-center justify-center rounded-lg bg-orange px-4 text-sm font-medium text-white hover:bg-orange/90"
-          >
-            Open pine script setup
-          </a>
-        )}
         {kind === "package" && (
-          <Link
-            href="/dashboard/balance"
-            className="mt-6 inline-flex h-9 items-center justify-center rounded-lg bg-orange px-4 text-sm font-medium text-white hover:bg-orange/90"
+          <button
+            type="button"
+            onClick={() => {
+              /* Cashier handles balance deposits */
+              window.location.href = "/dashboard";
+            }}
+            className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-orange px-4 text-sm font-semibold text-white hover:bg-orange/90"
           >
-            Add trading balance
-          </Link>
+            Open dashboard · Cashier
+          </button>
         )}
         <div className="mt-4">
           <Button variant="outline" onClick={reset}>
@@ -335,8 +328,8 @@ export function PaymentFlow({
           trading balance here for the bot to trade.
         </p>
         <Link
-          href="/dashboard/payment"
-          className="mt-6 inline-flex h-9 items-center justify-center rounded-lg bg-orange px-4 text-sm font-medium text-white hover:bg-orange/90"
+          href="/dashboard/packages"
+          className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-orange px-4 text-sm font-semibold text-white hover:bg-orange/90"
         >
           Buy a package
         </Link>
@@ -491,7 +484,7 @@ export function PaymentFlow({
             {history.slice(0, 5).map((p) => (
               <li
                 key={p.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-canvas px-3 py-2 text-sm"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-canvas px-3 py-2.5 text-sm"
               >
                 <span className="tabular font-medium">
                   {formatUsd(p.amount_usd)} {formatRail(p.currency)}

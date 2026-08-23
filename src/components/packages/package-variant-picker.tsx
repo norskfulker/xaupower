@@ -114,8 +114,8 @@ export function PackageVariantPicker({
 
       <div
         className={cn(
-          "mt-6 rounded-lg bg-canvas p-4",
-          highlightTerm && "ring-2 ring-orange"
+          "mt-6 rounded-2xl bg-canvas p-5",
+          highlightTerm && "ring-1 ring-orange/40"
         )}
       >
         <div className="flex items-center justify-between gap-3">
@@ -140,7 +140,7 @@ export function PackageVariantPicker({
       </div>
 
       {selected && (
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="mt-5 grid items-stretch gap-4 sm:grid-cols-3 sm:gap-5">
           <Meta label="Bot lot size" value={String(selected.max_lot_size)} />
           <Meta
             label="Bot drawdown"
@@ -186,10 +186,10 @@ function Meta({
   hint?: string;
 }) {
   return (
-    <div className="rounded-lg bg-canvas p-4">
-      <p className="text-xs uppercase tracking-wide text-muted-label">{label}</p>
-      <p className="mt-1 text-xl font-extrabold tabular text-orange">{value}</p>
-      {hint && <p className="mt-1 text-xs text-muted-label">{hint}</p>}
+    <div className="flex min-h-[6.5rem] flex-col rounded-2xl bg-canvas p-4 sm:p-5">
+      <p className="text-kicker">{label}</p>
+      <p className="mt-3 text-2xl font-black tabular text-orange sm:text-3xl">{value}</p>
+      {hint && <p className="mt-auto pt-2 text-xs text-muted-label">{hint}</p>}
     </div>
   );
 }

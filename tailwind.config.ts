@@ -58,6 +58,12 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "2xl": "calc(var(--radius) + 4px)",
+        "3xl": "calc(var(--radius) + 8px)",
+      },
+      boxShadow: {
+        float: "0 8px 32px rgba(30, 25, 14, 0.08)",
+        card: "0 2px 16px rgba(30, 25, 14, 0.06)",
       },
     },
   },

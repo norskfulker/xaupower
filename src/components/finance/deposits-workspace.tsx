@@ -54,8 +54,8 @@ export function DepositsWorkspace({
           )}
         </div>
       ) : (
-        <div className="rounded-lg bg-white shadow-sm p-5 sm:p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="rounded-2xl bg-card p-6 shadow-card sm:p-7">
+          <div className="mb-5 flex items-center justify-between gap-3">
             <p className="text-sm font-semibold text-ink">
               {kind === "balance" ? "Trading balance deposit" : "New deposit"}
             </p>

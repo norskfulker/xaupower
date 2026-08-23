@@ -124,16 +124,16 @@ export function LoginForm() {
 
   return (
     <motion.div
-      className="w-full max-w-md space-y-6"
+      className="w-full space-y-6"
       initial={reduce ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
       <div>
-        <h1 className="text-2xl font-bold text-ink">
+        <h1 className="text-display text-3xl sm:text-4xl">
           {mode === "signin" ? "Sign in" : "Create account"}
         </h1>
-        <p className="mt-1 text-sm text-muted-label">
+        <p className="mt-2 text-sm text-muted-label">
           Access your gold (XAUUSD) signal terminal
         </p>
       </div>

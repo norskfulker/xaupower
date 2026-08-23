@@ -53,6 +53,7 @@ export async function loadAdminUserRows(supabase: Supabase) {
       totalDeposited: depositedByUser.get(pr.id) ?? 0,
       available: Number(w?.available_usd ?? 0),
       pending: Number(w?.pending_usd ?? 0),
+      profitPips: Number((w as { profit_pips?: number } | undefined)?.profit_pips ?? 0),
       created_at: pr.created_at,
     };
   });

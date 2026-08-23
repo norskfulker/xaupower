@@ -60,8 +60,8 @@ export default async function PaymentPage({
   }));
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-3">
+    <div className="space-y-8">
+      <div className="grid items-stretch gap-4 sm:grid-cols-3 sm:gap-6">
         <StatCard
           label="Total deposited"
           value={formatUsd(
@@ -94,11 +94,6 @@ export default async function PaymentPage({
         />
       </div>
 
-      <div className="rounded-2xl border border-orange/30 bg-orange/10 px-5 py-4 text-sm text-orange">
-        All deposits require manual review. Submit your transaction hash after
-        sending payment.
-      </div>
-
       <DepositsWorkspace
         packages={(packagesRes.data ?? []) as Package[]}
         variants={variants}
@@ -107,8 +102,8 @@ export default async function PaymentPage({
         hasActivePackage={Boolean(pkgRes.data)}
       />
 
-      <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-        <div className="border-b border-border px-5 py-4">
+      <div className="overflow-hidden rounded-2xl bg-card shadow-card">
+        <div className="border-b border-border/50 px-5 py-5 sm:px-6">
           <h2 className="text-lg font-bold text-ink">Deposit history</h2>
         </div>
         <div className="overflow-x-auto">

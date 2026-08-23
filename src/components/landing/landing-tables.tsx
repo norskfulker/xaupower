@@ -32,7 +32,7 @@ export function LandingStepsTable({
   className?: string;
 }) {
   return (
-    <Card className={cn("w-full overflow-hidden border-border bg-white shadow-sm", className)}>
+    <Card className={cn("w-full overflow-hidden", className)}>
       <Table>
         <TableHeader>
           <TableRow className="bg-canvas hover:bg-canvas">
@@ -127,7 +127,7 @@ export function LandingFeaturesTable({
   className?: string;
 }) {
   return (
-    <Card className={cn("w-full overflow-hidden border-border bg-white shadow-sm", className)}>
+    <Card className={cn("w-full overflow-hidden", className)}>
       <Table>
         <TableHeader>
           <TableRow className="bg-canvas hover:bg-canvas">
@@ -169,7 +169,7 @@ export function LandingStatsTable({
   className?: string;
 }) {
   return (
-    <Card className={cn("w-full overflow-hidden border-border bg-white shadow-sm", className)}>
+    <Card className={cn("w-full overflow-hidden", className)}>
       <Table>
         <TableBody>
           {rows.map((row) => (

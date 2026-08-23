@@ -11,7 +11,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StatusPill } from "@/components/ui/status-pill";
 import { createClient } from "@/lib/supabase/client";
+import { formatUsd } from "@/lib/format";
+import { formatRail } from "@/lib/wallets";
 import { cn } from "@/lib/utils";
 import type {
   DepositAddress,
@@ -20,6 +23,7 @@ import type {
   SavedPayoutAddress,
   WalletBalance,
 } from "@/lib/types";
+import { format } from "date-fns";
 import { Loader2, Wallet } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -38,12 +42,14 @@ function CashierPanel({
   open,
   onOpenChange,
   onNavigate,
+  initialTab = "deposit",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onNavigate?: () => void;
+  initialTab?: CashierTab;
 }) {
-  const [tab, setTab] = useState<CashierTab>("deposit");
+  const [tab, setTab] = useState<CashierTab>(initialTab);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<CashierData | null>(null);
@@ -75,9 +81,9 @@ function CashierPanel({
           .from("payments")
           .select("*")
           .eq("user_id", user.id)
-          .eq("kind", "balance")
+          .in("kind", ["balance", "package"])
           .order("created_at", { ascending: false })
-          .limit(20),
+          .limit(30),
         supabase
           .from("user_packages")
           .select("id")
@@ -94,7 +100,7 @@ function CashierPanel({
           .select("*")
           .eq("user_id", user.id)
           .order("requested_at", { ascending: false })
-          .limit(20),
+          .limit(30),
         supabase
           .from("saved_payout_addresses")
           .select("*")
@@ -120,9 +126,9 @@ function CashierPanel({
 
   useEffect(() => {
     if (!open) return;
-    setTab("deposit");
+    setTab(initialTab);
     void load();
-  }, [open, load]);
+  }, [open, load, initialTab]);
 
   return (
     <Dialog
@@ -132,14 +138,12 @@ function CashierPanel({
         if (!next) onNavigate?.();
       }}
     >
-      <DialogContent className="flex max-h-[90vh] w-full max-w-lg flex-col gap-0 overflow-hidden border-border bg-white p-0 text-ink sm:max-w-lg sm:rounded-2xl">
-        <div className="border-b border-border px-5 pt-5 pb-4">
+      <DialogContent className="flex max-h-[90vh] w-full max-w-lg flex-col gap-0 overflow-hidden border-border bg-white p-0 text-ink sm:max-w-xl">
+        <div className="border-b border-border/50 px-5 pt-5 pb-4">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-ink">
-              Cashier
-            </DialogTitle>
+            <DialogTitle>Cashier</DialogTitle>
             <DialogDescription className="text-muted-label">
-              Deposit capital or withdraw available balance — switch tabs below.
+              Deposit, withdraw, and review history — switch tabs below.
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -168,25 +172,26 @@ function CashierPanel({
                 if (value === "deposit" || value === "withdraw") setTab(value);
               }}
             >
-              <TabsList className="grid h-10 w-full grid-cols-2">
-                <TabsTrigger value="deposit" className="px-3">
+              <TabsList className="grid h-11 w-full grid-cols-2 rounded-md">
+                <TabsTrigger value="deposit" className="rounded-md px-3">
                   Deposit
                 </TabsTrigger>
-                <TabsTrigger value="withdraw" className="px-3">
+                <TabsTrigger value="withdraw" className="rounded-md px-3">
                   Withdraw
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="deposit" className="mt-4">
+              <TabsContent value="deposit" className="mt-4 space-y-6">
                 <PaymentFlow
                   key={`deposit-${data.payments.length}`}
                   kind="balance"
                   depositAddresses={data.depositAddresses}
-                  initialPayments={data.payments}
+                  initialPayments={data.payments.filter((p) => p.kind === "balance")}
                   hasActivePackage={data.hasActivePackage}
                   showHistory={false}
                 />
+                <DepositHistory rows={data.payments} />
               </TabsContent>
-              <TabsContent value="withdraw" className="mt-4">
+              <TabsContent value="withdraw" className="mt-4 space-y-6">
                 <PayoutFlow
                   key={`withdraw-${data.payouts.length}`}
                   initialWallet={data.wallet}
@@ -194,6 +199,7 @@ function CashierPanel({
                   savedAddresses={data.savedAddresses}
                   showHistory={false}
                 />
+                <PayoutHistory rows={data.payouts} />
               </TabsContent>
             </Tabs>
           )}
@@ -203,16 +209,80 @@ function CashierPanel({
   );
 }
 
+function DepositHistory({ rows }: { rows: Payment[] }) {
+  return (
+    <div className="rounded-2xl bg-canvas p-4">
+      <p className="text-kicker">Deposit history</p>
+      {rows.length === 0 ? (
+        <p className="mt-3 text-sm text-muted-label">No deposits yet.</p>
+      ) : (
+        <ul className="mt-3 space-y-2">
+          {rows.slice(0, 8).map((p) => (
+            <li
+              key={p.id}
+              className="flex items-center justify-between gap-3 rounded-md bg-card px-3 py-2.5 text-sm"
+            >
+              <span className="min-w-0">
+                <span className="block font-semibold tabular text-ink">
+                  {formatUsd(p.amount_usd)}
+                </span>
+                <span className="block truncate text-xs text-muted-label">
+                  {formatRail(p.currency)} ·{" "}
+                  {format(new Date(p.created_at), "d MMM yyyy")}
+                </span>
+              </span>
+              <StatusPill status={p.status} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function PayoutHistory({ rows }: { rows: Payout[] }) {
+  return (
+    <div className="rounded-2xl bg-canvas p-4">
+      <p className="text-kicker">Payout history</p>
+      {rows.length === 0 ? (
+        <p className="mt-3 text-sm text-muted-label">No payouts yet.</p>
+      ) : (
+        <ul className="mt-3 space-y-2">
+          {rows.slice(0, 8).map((p) => (
+            <li
+              key={p.id}
+              className="flex items-center justify-between gap-3 rounded-md bg-card px-3 py-2.5 text-sm"
+            >
+              <span className="min-w-0">
+                <span className="block font-semibold tabular text-ink">
+                  {formatUsd(p.amount_usd)}
+                </span>
+                <span className="block truncate text-xs text-muted-label">
+                  {formatRail(p.currency)} ·{" "}
+                  {format(new Date(p.requested_at), "d MMM yyyy")}
+                </span>
+              </span>
+              <StatusPill status={p.status} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function CashierDialog({
   className,
   variant = "outline",
   size = "default",
   fullWidth = true,
+  initialTab = "deposit",
 }: {
   className?: string;
   variant?: "outline" | "ghost" | "default";
   size?: "default" | "sm" | "lg";
   fullWidth?: boolean;
+  initialTab?: CashierTab;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -231,7 +301,11 @@ export function CashierDialog({
         <Wallet className="size-4 shrink-0" />
         Cashier
       </button>
-      <CashierPanel open={open} onOpenChange={setOpen} />
+      <CashierPanel
+        open={open}
+        onOpenChange={setOpen}
+        initialTab={initialTab}
+      />
     </>
   );
 }
@@ -239,9 +313,11 @@ export function CashierDialog({
 export function CashierNavItem({
   onNavigate,
   active,
+  pill,
 }: {
   onNavigate?: () => void;
   active?: boolean;
+  pill?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -251,7 +327,9 @@ export function CashierNavItem({
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition",
+          pill
+            ? "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition"
+            : "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition",
           active
             ? "bg-orange text-white"
             : "text-ink/70 hover:bg-orange/10 hover:text-ink"
@@ -265,6 +343,27 @@ export function CashierNavItem({
         onOpenChange={setOpen}
         onNavigate={onNavigate}
       />
+    </>
+  );
+}
+
+export function CashierBottomNavItem({ active }: { active?: boolean }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={cn(
+          "flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-semibold transition",
+          active ? "text-orange" : "text-ink/60"
+        )}
+      >
+        <Wallet className="size-5 shrink-0" />
+        <span className="truncate">Cashier</span>
+      </button>
+      <CashierPanel open={open} onOpenChange={setOpen} />
     </>
   );
 }

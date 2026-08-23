@@ -50,7 +50,7 @@ export function SignalFeed({ initialSignals }: { initialSignals: Signal[] }) {
 
   if (signals.length === 0) {
     return (
-      <div className="rounded-lg bg-white p-8 text-center shadow-sm">
+      <div className="rounded-2xl bg-card p-8 text-center shadow-card sm:p-10">
         <h3 className="text-lg font-bold text-ink">Recent signals</h3>
         <p className="mt-2 text-sm text-muted-label">
           No gold signals yet. Activate a package to stay ready when the XAUUSD
@@ -61,10 +61,10 @@ export function SignalFeed({ initialSignals }: { initialSignals: Signal[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-      <div className="border-b border-border px-5 py-4">
+    <div className="overflow-hidden rounded-2xl bg-card shadow-card">
+      <div className="border-b border-border/50 px-5 py-5 sm:px-6">
         <h3 className="text-lg font-bold text-ink">Recent signals</h3>
-        <p className="text-sm text-muted-label">Read-only XAUUSD feed</p>
+        <p className="mt-1 text-sm text-muted-label">Read-only XAUUSD feed</p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-left text-sm text-ink">

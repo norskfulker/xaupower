@@ -14,20 +14,18 @@ export function DashboardFinanceSection({
   hasActivePackage: boolean;
 }) {
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-      <p className="text-xs uppercase tracking-wide text-muted-label">
-        What to do
-      </p>
-      <h2 className="mt-1 text-xl font-bold text-ink">
+    <div className="rounded-2xl bg-card p-6 shadow-card sm:p-7">
+      <p className="text-kicker">What to do</p>
+      <h2 className="mt-2 text-xl font-black tracking-tight text-ink">
         {hasActivePackage
           ? "VPS bot is active — add trading balance"
           : "Two ways to use XAUPower"}
       </h2>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div className="mt-6 grid items-stretch gap-4 sm:grid-cols-2 sm:gap-5">
         {hasActivePackage ? (
           <>
             <Link
-              href="/dashboard/balance"
+              href="/dashboard"
               className="rounded-2xl bg-canvas px-4 py-4 text-left transition hover:bg-orange/10"
             >
               <span className="inline-flex size-7 items-center justify-center rounded-full bg-orange text-xs font-bold text-white">

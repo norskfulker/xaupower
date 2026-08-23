@@ -69,15 +69,11 @@ export function PaymentReviewQueue({
   }
 
   return (
-    <section id="payments" className="space-y-4">
+    <section id="payments" className="space-y-6">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-ink">Wallet deposit review</h2>
-          <p className="text-sm text-ink/60">
-            Every incoming deposit needs approve or reject. Signal purchases
-            unlock the pine script. Bot setup and trading-balance deposits
-            belong to the VPS path.
-          </p>
+          <p className="text-kicker">Queue</p>
+          <h2 className="mt-1 text-xl font-bold text-ink">Wallet deposit review</h2>
         </div>
         <span className="rounded-full bg-orange/20 px-3 py-1 text-xs font-semibold text-orange">
           {queue.length} pending
@@ -85,7 +81,7 @@ export function PaymentReviewQueue({
       </div>
 
       {queue.length === 0 ? (
-        <div className="rounded-lg bg-white p-6 text-sm text-muted-label shadow-sm">
+        <div className="rounded-2xl bg-card p-6 text-sm text-muted-label shadow-card sm:p-7">
           No deposits waiting for review.
         </div>
       ) : (
@@ -100,7 +96,7 @@ export function PaymentReviewQueue({
             return (
               <li
                 key={p.id}
-                className="rounded-lg border border-orange/30 bg-white p-4"
+                className="rounded-2xl bg-orange/5 p-5 ring-1 ring-orange/30"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>

@@ -1,5 +1,6 @@
 import { MfaChallengeForm } from "@/components/auth/mfa-challenge-form";
 import { Wordmark } from "@/components/brand/wordmark";
+import { SurfaceCard } from "@/components/ui/surface-card";
 import { Suspense } from "react";
 
 export default function AuthMfaPage({
@@ -16,9 +17,9 @@ export default function AuthMfaPage({
     <div className="flex min-h-screen items-center justify-center bg-canvas p-6">
       <div className="w-full max-w-md space-y-6">
         <Wordmark href="/" className="inline-block text-2xl text-ink" />
-        <div className="rounded-2xl bg-white p-8 shadow-sm">
-          <h1 className="text-2xl font-bold text-ink">Two-factor check</h1>
-          <p className="mt-1 text-sm text-muted-label">
+        <SurfaceCard padding="lg">
+          <h1 className="text-display text-3xl sm:text-4xl">Two-factor check</h1>
+          <p className="mt-2 text-sm text-muted-label">
             Enter the code from your authenticator app to continue.
           </p>
           <div className="mt-6">
@@ -26,7 +27,7 @@ export default function AuthMfaPage({
               <MfaChallengeForm nextPath={next} />
             </Suspense>
           </div>
-        </div>
+        </SurfaceCard>
       </div>
     </div>
   );
