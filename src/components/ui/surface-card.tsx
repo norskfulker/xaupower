@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 
+/** Equal padding on all sides by default — use across landing and app surfaces. */
 export function SurfaceCard({
   className,
   padding = "default",
@@ -12,9 +13,9 @@ export function SurfaceCard({
     <div
       className={cn(
         "rounded-2xl bg-card text-ink shadow-card",
-        padding === "sm" && "p-4 sm:p-5",
-        padding === "default" && "p-6 sm:p-7",
-        padding === "lg" && "p-7 sm:p-9",
+        padding === "sm" && "p-5",
+        padding === "default" && "p-6",
+        padding === "lg" && "p-8",
         className
       )}
       {...props}

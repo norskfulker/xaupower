@@ -32,7 +32,7 @@ export function LandingStepsTable({
   className?: string;
 }) {
   return (
-    <Card className={cn("w-full overflow-hidden", className)}>
+    <Card className={cn("w-full overflow-hidden p-0", className)}>
       <Table>
         <TableHeader>
           <TableRow className="bg-canvas hover:bg-canvas">
@@ -127,7 +127,7 @@ export function LandingFeaturesTable({
   className?: string;
 }) {
   return (
-    <Card className={cn("w-full overflow-hidden", className)}>
+    <Card className={cn("w-full overflow-hidden p-0", className)}>
       <Table>
         <TableHeader>
           <TableRow className="bg-canvas hover:bg-canvas">
@@ -169,21 +169,86 @@ export function LandingStatsTable({
   className?: string;
 }) {
   return (
-    <Card className={cn("w-full overflow-hidden", className)}>
+    <Card className={cn("w-full overflow-hidden p-0", className)}>
       <Table>
         <TableBody>
           {rows.map((row) => (
             <TableRow key={row.kicker}>
-              <TableCell className="px-3 py-3 text-xl font-black tabular text-orange sm:px-4 sm:text-2xl">
+              <TableCell className="px-6 py-4 text-xl font-black tabular text-orange sm:text-2xl">
                 {row.kicker}
               </TableCell>
-              <TableCell className="px-3 py-3 text-sm text-muted-label sm:px-4">
+              <TableCell className="px-6 py-4 text-sm text-muted-label">
                 {row.label}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+    </Card>
+  );
+}
+
+type PerformanceRow = {
+  period: string;
+  trades: string;
+  winRate: string;
+  pips: string;
+  result: string;
+};
+
+export function LandingPerformanceTable({
+  rows,
+  className,
+}: {
+  rows: PerformanceRow[];
+  className?: string;
+}) {
+  return (
+    <Card className={cn("w-full overflow-hidden p-0", className)}>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-canvas hover:bg-canvas">
+              <TableHead className="px-6 py-4 text-[10px] uppercase tracking-wide text-muted-label sm:text-xs">
+                Period
+              </TableHead>
+              <TableHead className="px-6 py-4 text-[10px] uppercase tracking-wide text-muted-label sm:text-xs">
+                Trades
+              </TableHead>
+              <TableHead className="px-6 py-4 text-[10px] uppercase tracking-wide text-muted-label sm:text-xs">
+                Win rate
+              </TableHead>
+              <TableHead className="px-6 py-4 text-[10px] uppercase tracking-wide text-muted-label sm:text-xs">
+                Net pips
+              </TableHead>
+              <TableHead className="px-6 py-4 text-right text-[10px] uppercase tracking-wide text-muted-label sm:text-xs">
+                Result
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow key={row.period}>
+                <TableCell className="px-6 py-4 text-sm font-semibold text-ink">
+                  {row.period}
+                </TableCell>
+                <TableCell className="px-6 py-4 tabular text-sm text-ink">
+                  {row.trades}
+                </TableCell>
+                <TableCell className="px-6 py-4 tabular text-sm text-ink">
+                  {row.winRate}
+                </TableCell>
+                <TableCell className="px-6 py-4 tabular text-sm font-semibold text-teal">
+                  {row.pips}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-right text-sm font-semibold text-teal">
+                  {row.result}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </Card>
   );
 }
