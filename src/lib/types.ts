@@ -28,7 +28,8 @@ export type TransactionType =
   | "deposit"
   | "payout"
   | "package_purchase"
-  | "signal_settlement";
+  | "signal_settlement"
+  | "bot_return";
 
 export interface Profile {
   id: string;
@@ -101,6 +102,9 @@ export interface UserPackage {
   status: UserPackageStatus;
   purchased_at: string | null;
   expires_at: string | null;
+  account_code?: string | null;
+  available_usd?: number;
+  pending_usd?: number;
   variant_snapshot?: VariantSnapshot | null;
   package_variants?: PackageVariant & { packages?: Package };
 }
@@ -110,6 +114,8 @@ export interface Payment {
   user_id: string;
   kind: PaymentKind;
   package_variant_id: string | null;
+  user_package_id?: string | null;
+  initial_deposit_usd?: number;
   currency: CryptoCurrency;
   amount_usd: number;
   nowpayments_payment_id: string | null;
@@ -128,6 +134,7 @@ export interface Payment {
 export interface Payout {
   id: string;
   user_id: string;
+  user_package_id?: string | null;
   amount_usd: number;
   currency: CryptoCurrency;
   destination_address: string;
@@ -202,5 +209,6 @@ export interface UserSignalAccess {
 export const PLACEHOLDER_DEPOSIT_PREFIX = "PLACEHOLDER_";
 export const SIGNAL_PRICE_USD = 49;
 export const MIN_BALANCE_TOPUP_USD = 10;
+export const MAX_BALANCE_TOPUP_USD = 10_000_000;
 export const TRADINGVIEW_CHART_URL =
   "https://www.tradingview.com/chart/?symbol=OANDA:XAUUSD";

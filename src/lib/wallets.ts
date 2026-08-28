@@ -113,13 +113,13 @@ export const RAIL_LABEL: Record<PaymentRail, string> = {
 export const RAIL_HINT: Record<PaymentRail, string> = {
   BTC: "Send BTC on Bitcoin.",
   ETH: "Send ETH on Ethereum.",
-  BNB: "Send BNB on BNB Smart Chain. Uses the same 0x address as ERC20.",
+  BNB: "Send BNB on BNB Smart Chain.",
   TRX: "Send TRX on Tron.",
   USDT_ERC20: "Send USDT on Ethereum (ERC20).",
-  USDT_BEP20: "Send USDT on BNB Smart Chain (BEP20). Uses the same 0x address as ERC20.",
+  USDT_BEP20: "Send USDT on BNB Smart Chain (BEP20).",
   USDT_TRC20: "Send USDT on Tron (TRC20).",
   USDC_ERC20: "Send USDC on Ethereum (ERC20).",
-  USDC_BEP20: "Send USDC on BNB Smart Chain (BEP20). Uses the same 0x address as ERC20.",
+  USDC_BEP20: "Send USDC on BNB Smart Chain (BEP20).",
   USDC_TRC20: "Send USDC on Tron (TRC20).",
 };
 

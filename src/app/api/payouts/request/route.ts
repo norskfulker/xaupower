@@ -19,11 +19,16 @@ export async function POST(request: Request) {
       amountUsd?: number;
       currency?: string;
       destinationAddress?: string;
+      userPackageId?: string;
     };
 
     const amount = Number(body.amountUsd);
     if (!Number.isFinite(amount) || amount <= 0) {
       return NextResponse.json({ error: "Enter a valid amount" }, { status: 400 });
+    }
+
+    if (!body.userPackageId) {
+      return NextResponse.json({ error: "Bot account required" }, { status: 400 });
     }
 
     if (!body.currency || !isPaymentRail(body.currency)) {
@@ -38,17 +43,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: addressError }, { status: 400 });
     }
 
-    const { data: wallet } = await supabase
-      .from("wallet_balances")
+    const { data: botAccount } = await supabase
+      .from("user_packages")
       .select("available_usd")
+      .eq("id", body.userPackageId)
       .eq("user_id", user.id)
-      .single();
+      .eq("status", "active")
+      .maybeSingle();
 
-    const available = Number(wallet?.available_usd ?? 0);
+    const available = Number(botAccount?.available_usd ?? 0);
     if (amount > available) {
       return NextResponse.json(
         {
-          error: `Amount exceeds your available balance of $${available.toFixed(2)}`,
+          error: `Amount exceeds available balance of $${available.toFixed(2)}`,
         },
         { status: 400 }
       );
@@ -58,6 +65,7 @@ export async function POST(request: Request) {
       p_amount_usd: amount,
       p_currency: body.currency,
       p_destination_address: body.destinationAddress!.trim(),
+      p_user_package_id: body.userPackageId,
     });
 
     if (error) {

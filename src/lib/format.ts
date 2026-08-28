@@ -8,6 +8,24 @@ export function formatUsd(value: number | string | null | undefined): string {
   }).format(Number.isFinite(n) ? n : 0);
 }
 
+/** Whole-dollar display for bot plan prices. */
+export function formatUsdInteger(value: number | string | null | undefined): string {
+  const n = typeof value === "string" ? Number(value) : value ?? 0;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Number.isFinite(n) ? Math.round(n) : 0);
+}
+
+export function planFeatureBullets(features: string[] | null | undefined): string[] {
+  return (features ?? []).filter(
+    (feature) =>
+      !/3-week|daily return|credited at 03:00/i.test(feature)
+  );
+}
+
 export function formatPrice(value: number | string | null | undefined, digits = 2): string {
   const n = typeof value === "string" ? Number(value) : value ?? 0;
   return new Intl.NumberFormat("en-US", {
@@ -21,6 +39,23 @@ export function daysRemaining(expiresAt: string | null | undefined): number | nu
   const ms = new Date(expiresAt).getTime() - Date.now();
   if (ms <= 0) return 0;
   return Math.ceil(ms / (1000 * 60 * 60 * 24));
+}
+
+export const PLAN_ACCESS_TERM = "3 weeks";
+export const PLAN_ACCESS_DAYS = 21;
+
+export const DAILY_RETURN_RANGE: Record<
+  "Assay" | "Bullion" | "Vault",
+  { min: number; max: number }
+> = {
+  Assay: { min: 5, max: 8 },
+  Bullion: { min: 6, max: 12 },
+  Vault: { min: 7, max: 14 },
+};
+
+export function dailyReturnLabel(name: "Assay" | "Bullion" | "Vault"): string {
+  const range = DAILY_RETURN_RANGE[name];
+  return `${range.min}–${range.max}% daily`;
 }
 
 export const RISK_LABEL: Record<

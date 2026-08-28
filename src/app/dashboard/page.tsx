@@ -20,7 +20,7 @@ export default async function DashboardPage() {
     supabase
       .from("user_packages")
       .select(
-        "purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, packages(name))"
+        "id, account_code, available_usd, pending_usd, purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, packages(name))"
       )
       .eq("user_id", user!.id)
       .eq("status", "active")
@@ -69,8 +69,12 @@ export default async function DashboardPage() {
       <div className="grid items-stretch gap-4 sm:grid-cols-3 sm:gap-6">
         <StatCard
           label="Available balance"
-          value={formatUsd(wallet?.available_usd)}
-          hint="Available for withdrawal"
+          value={formatUsd(activePkg?.available_usd ?? wallet?.available_usd)}
+          hint={
+            activePkg?.account_code
+              ? `Bot ${activePkg.account_code}`
+              : "Available for withdrawal"
+          }
           icon={Banknote}
         />
         <StatCard
@@ -143,8 +147,16 @@ export default async function DashboardPage() {
                   </div>
                 </div>
                 <div className="flex justify-between gap-4 border-t border-border pt-3">
-                  <dt className="text-muted-label">Signal delivery</dt>
-                  <dd className="font-semibold text-teal">Online</dd>
+                  <dt className="text-muted-label">Bot account ID</dt>
+                  <dd className="font-mono text-sm font-semibold text-orange">
+                    {activePkg.account_code ?? "—"}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted-label">Available balance</dt>
+                  <dd className="tabular font-semibold text-ink">
+                    {formatUsd(activePkg.available_usd ?? 0)}
+                  </dd>
                 </div>
               </dl>
               <div className="mt-5 flex flex-wrap gap-3">

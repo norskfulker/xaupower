@@ -203,52 +203,84 @@ export function LandingPerformanceTable({
   rows: PerformanceRow[];
   className?: string;
 }) {
+  const lastIndex = rows.length - 1;
+
+  const headClass =
+    "px-6 py-4 text-[10px] font-semibold uppercase tracking-wide text-muted-label sm:text-xs";
+  const cellClass = "px-6 py-4";
+
   return (
-    <Card className={cn("w-full overflow-hidden p-0", className)}>
+    <div
+      className={cn(
+        "w-full overflow-hidden rounded-2xl border border-border bg-card",
+        className
+      )}
+    >
       <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-canvas hover:bg-canvas">
-              <TableHead className="px-6 py-4 text-[10px] uppercase tracking-wide text-muted-label sm:text-xs">
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            <col className="w-[26%]" />
+            <col className="w-[16%]" />
+            <col className="w-[18%]" />
+            <col className="w-[18%]" />
+            <col className="w-[20%]" />
+          </colgroup>
+          <thead>
+            <tr className="border-b border-border bg-canvas">
+              <th className={cn(headClass, "rounded-tl-2xl text-left")}>
                 Period
-              </TableHead>
-              <TableHead className="px-6 py-4 text-[10px] uppercase tracking-wide text-muted-label sm:text-xs">
-                Trades
-              </TableHead>
-              <TableHead className="px-6 py-4 text-[10px] uppercase tracking-wide text-muted-label sm:text-xs">
-                Win rate
-              </TableHead>
-              <TableHead className="px-6 py-4 text-[10px] uppercase tracking-wide text-muted-label sm:text-xs">
-                Net pips
-              </TableHead>
-              <TableHead className="px-6 py-4 text-right text-[10px] uppercase tracking-wide text-muted-label sm:text-xs">
+              </th>
+              <th className={cn(headClass, "text-left")}>Trades</th>
+              <th className={cn(headClass, "text-left")}>Win rate</th>
+              <th className={cn(headClass, "text-left")}>Net pips</th>
+              <th className={cn(headClass, "rounded-tr-2xl text-right")}>
                 Result
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow key={row.period}>
-                <TableCell className="px-6 py-4 text-sm font-semibold text-ink">
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-card">
+            {rows.map((row, index) => (
+              <tr
+                key={row.period}
+                className="border-b border-border last:border-b-0 hover:bg-canvas/40"
+              >
+                <td
+                  className={cn(
+                    cellClass,
+                    "text-sm font-semibold text-ink",
+                    index === lastIndex && "rounded-bl-2xl"
+                  )}
+                >
                   {row.period}
-                </TableCell>
-                <TableCell className="px-6 py-4 tabular text-sm text-ink">
+                </td>
+                <td className={cn(cellClass, "tabular text-sm text-ink")}>
                   {row.trades}
-                </TableCell>
-                <TableCell className="px-6 py-4 tabular text-sm text-ink">
+                </td>
+                <td className={cn(cellClass, "tabular text-sm text-ink")}>
                   {row.winRate}
-                </TableCell>
-                <TableCell className="px-6 py-4 tabular text-sm font-semibold text-teal">
+                </td>
+                <td
+                  className={cn(
+                    cellClass,
+                    "tabular text-sm font-semibold text-teal"
+                  )}
+                >
                   {row.pips}
-                </TableCell>
-                <TableCell className="px-6 py-4 text-right text-sm font-semibold text-teal">
+                </td>
+                <td
+                  className={cn(
+                    cellClass,
+                    "text-right text-sm font-semibold text-teal",
+                    index === lastIndex && "rounded-br-2xl"
+                  )}
+                >
                   {row.result}
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
-    </Card>
+    </div>
   );
 }

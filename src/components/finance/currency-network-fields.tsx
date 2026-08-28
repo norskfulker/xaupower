@@ -25,7 +25,7 @@ export function CurrencyNetworkFields({
   rail,
   rails,
   onChange,
-  triggerClassName = "w-full",
+  triggerClassName = "w-full h-11 rounded-md border-border bg-canvas px-3.5",
 }: {
   rail: PaymentRail;
   rails: PaymentRail[];

@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { formatUsd, RISK_LABEL, WEEKLY_PROFIT_PCT } from "@/lib/format";
+import {
+  formatUsd,
+  formatUsdInteger,
+  PLAN_ACCESS_TERM,
+  RISK_LABEL,
+  WEEKLY_PROFIT_PCT,
+} from "@/lib/format";
 import type { Package, PackageVariant, RiskTier } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -97,7 +103,7 @@ export function PackageVariantPicker({
             >
               <span className="block text-sm font-semibold">{pkg.name}</span>
               <span className="mt-1 block text-lg font-extrabold tabular">
-                {formatUsd(pkg.price_usd)}
+                {formatUsdInteger(pkg.price_usd)}
               </span>
               <span
                 className={cn(
@@ -105,7 +111,7 @@ export function PackageVariantPicker({
                   active ? "text-ink/70" : "text-muted-label"
                 )}
               >
-                30-day term
+                {PLAN_ACCESS_TERM}
               </span>
             </button>
           );

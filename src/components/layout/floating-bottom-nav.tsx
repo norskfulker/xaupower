@@ -52,6 +52,7 @@ export function FloatingBottomNav({
   const isAdminRoute = variant === "admin";
 
   const cashierActive =
+    pathname.startsWith("/dashboard/cashier") ||
     pathname.startsWith("/dashboard/balance") ||
     pathname.startsWith("/dashboard/payout") ||
     pathname.startsWith("/dashboard/payment");

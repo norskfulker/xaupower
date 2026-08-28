@@ -1,13 +1,15 @@
-import { getAuthUser, getOwnProfile, getPriceQuotes } from "@/lib/supabase/server";
+import { createClient, getAuthUser, getOwnProfile, getPriceQuotes } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Wordmark } from "@/components/brand/wordmark";
 import { LandingHeader } from "@/components/landing/landing-header";
 import { LandingPriceChart } from "@/components/landing/landing-price-chart";
 import { LandingStickyBar } from "@/components/landing/landing-sticky-bar";
 import { LandingPerformanceTable } from "@/components/landing/landing-tables";
+import { PackagesGrid } from "@/components/packages/packages-grid";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { Package } from "@/lib/types";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
@@ -65,6 +67,16 @@ const FEATURES: ReadonlyArray<{
     body: "Manual traders freeze at the worst moments. Automation removes the freeze — entries and exits stay disciplined.",
     icon: Scale,
   },
+  {
+    title: "Liquidity mapping and grabbing",
+    body: "The bot finds the best liquidity to execute at. It grabs the best price and executes the trade.",
+    icon: Scale,
+  },
+  {
+    title: "Target to stay profitable",
+    body: "The bot targets a profit level to stay profitable. It doesn't chase the market or get greedy.",
+    icon: Scale,
+  },
 ];
 
 const STEPS = [
@@ -113,8 +125,17 @@ export default async function HomePage() {
   const user = await getAuthUser();
   const profile = user ? await getOwnProfile(user.id) : null;
   const authHref = user ? "/dashboard" : "/login";
+  const plansHref = user ? "/dashboard/packages" : "/login";
   const quotes = await getPriceQuotes();
   const xauQuote = quotes.find((q) => q.pair === "XAUUSD") ?? null;
+
+  const supabase = createClient();
+  const { data: packagesData } = await supabase
+    .from("packages")
+    .select("*")
+    .eq("is_active", true)
+    .order("price_usd");
+  const packages = (packagesData ?? []) as Package[];
 
   return (
     <div className="min-h-screen bg-canvas pt-28 text-ink pb-[calc(8rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
@@ -195,7 +216,7 @@ export default async function HomePage() {
         <div className="text-center">
           <p className="text-kicker text-orange">Why the bot wins</p>
           <h2 className="mx-auto mt-2 max-w-2xl text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
-            Built to beat fear — not chase hype
+            Built on highly advanced IRT & SMC Strategies
           </h2>
         </div>
         <ul className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:mt-10 sm:grid-cols-2 sm:gap-6">
@@ -241,6 +262,32 @@ export default async function HomePage() {
         </ol>
       </section>
 
+      {/* BOT PLANS */}
+      {packages.length > 0 && (
+        <section
+          id="plans"
+          className="mx-auto max-w-7xl border-t border-border px-4 py-12 sm:px-6 sm:py-16"
+        >
+          <div className="text-center">
+            <p className="text-kicker text-orange">Bot plans</p>
+            <h2 className="mx-auto mt-2 max-w-2xl text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
+              Pick your VPS bot access
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-label">
+              3-week plans with daily returns credited at 03:00 UTC. Choose a
+              tier and let the bot execute without emotion.
+            </p>
+          </div>
+          <div className="mt-8 sm:mt-10">
+            <PackagesGrid
+              packages={packages}
+              ctaHref={plansHref}
+              ctaLabel="Buy Bot"
+            />
+          </div>
+        </section>
+      )}
+
       {/* PAST PERFORMANCE */}
       <section
         id="performance"
@@ -275,6 +322,7 @@ export default async function HomePage() {
               ["/", "Home"],
               ["#features", "Features"],
               ["#steps", "Steps"],
+              ["#plans", "Plans"],
               ["#performance", "Performance"],
               ["#risk", "Risk"],
             ].map(([href, label]) => (

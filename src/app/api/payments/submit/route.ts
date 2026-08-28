@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { sendAdminDepositAlert, sendUserDepositNotice } from "@/lib/email";
 import { PAYMENT_KIND_LABEL } from "@/lib/format";
 import { isPaymentRail } from "@/lib/wallets";
-import { SIGNAL_PRICE_USD, type PaymentKind } from "@/lib/types";
+import { SIGNAL_PRICE_USD, MAX_BALANCE_TOPUP_USD, type PaymentKind } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
@@ -19,10 +19,12 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       kind?: PaymentKind;
       packageVariantId?: string;
+      initialDepositUsd?: number;
       amountUsd?: number;
       currency?: string;
       txHash?: string;
       userNote?: string;
+      userPackageId?: string;
     };
 
     const kind: PaymentKind = body.kind ?? "package";
@@ -41,11 +43,44 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid currency" }, { status: 400 });
     }
 
+    if (kind === "balance") {
+      const amount = Number(body.amountUsd);
+      if (!Number.isFinite(amount) || amount > MAX_BALANCE_TOPUP_USD) {
+        return NextResponse.json(
+          { error: `Maximum per payment is $${MAX_BALANCE_TOPUP_USD.toLocaleString()}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (kind === "package") {
+      const extra = Number(body.initialDepositUsd ?? 0);
+      if (!Number.isFinite(extra) || extra < 0) {
+        return NextResponse.json({ error: "Invalid additional amount" }, { status: 400 });
+      }
+    }
+
     if (kind === "package" && !body.packageVariantId) {
       return NextResponse.json(
         { error: "Package, currency, and tx hash are required" },
         { status: 400 }
       );
+    }
+
+    if (kind === "package" && body.packageVariantId) {
+      const { data: variant } = await supabase
+        .from("package_variants")
+        .select("price_usd")
+        .eq("id", body.packageVariantId)
+        .single();
+      const planPrice = Number(variant?.price_usd ?? 0);
+      const extra = Number(body.initialDepositUsd ?? 0);
+      if (planPrice + extra > MAX_BALANCE_TOPUP_USD) {
+        return NextResponse.json(
+          { error: `Maximum per payment is $${MAX_BALANCE_TOPUP_USD.toLocaleString()}` },
+          { status: 400 }
+        );
+      }
     }
 
     const { data: payment, error } = await supabase.rpc("submit_manual_payment", {
@@ -55,6 +90,10 @@ export async function POST(request: Request) {
       p_package_variant_id: kind === "package" ? body.packageVariantId : null,
       p_amount_usd: kind === "balance" ? Number(body.amountUsd) : null,
       p_user_note: body.userNote?.trim() || null,
+      p_initial_deposit_usd:
+        kind === "package" ? Number(body.initialDepositUsd) : null,
+      p_user_package_id:
+        kind === "balance" ? body.userPackageId ?? null : null,
     });
 
     if (error || !payment) {

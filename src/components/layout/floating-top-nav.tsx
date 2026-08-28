@@ -116,6 +116,7 @@ export function FloatingTopNav({
     : USER_NAV.filter((item) => !item.adminOnly || isAdmin);
 
   const cashierActive =
+    pathname.startsWith("/dashboard/cashier") ||
     pathname.startsWith("/dashboard/balance") ||
     pathname.startsWith("/dashboard/payout") ||
     pathname.startsWith("/dashboard/payment");

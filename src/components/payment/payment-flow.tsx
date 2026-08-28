@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BotAccountSelect } from "@/components/packages/bot-account-select";
 import { PackageVariantPicker } from "@/components/packages/package-variant-picker";
 import { formatUsd, PAYMENT_KIND_LABEL, RISK_LABEL } from "@/lib/format";
 import type {
@@ -16,9 +17,11 @@ import type {
   PackageVariant,
   Payment,
   PaymentKind,
+  UserPackage,
 } from "@/lib/types";
 import {
   MIN_BALANCE_TOPUP_USD,
+  MAX_BALANCE_TOPUP_USD,
   PLACEHOLDER_DEPOSIT_PREFIX,
   SIGNAL_PRICE_USD,
 } from "@/lib/types";
@@ -47,7 +50,7 @@ export function PaymentFlow({
   depositAddresses,
   initialVariantId,
   initialPayments = [],
-  hasActivePackage = false,
+  botAccounts = [],
   showHistory = true,
 }: {
   kind?: PaymentKind;
@@ -56,7 +59,7 @@ export function PaymentFlow({
   depositAddresses: DepositAddress[];
   initialVariantId?: string | null;
   initialPayments?: Payment[];
-  hasActivePackage?: boolean;
+  botAccounts?: UserPackage[];
   showHistory?: boolean;
 }) {
   const defaultVariant =
@@ -75,6 +78,7 @@ export function PaymentFlow({
     )
   );
   const [amountUsd, setAmountUsd] = useState("100");
+  const [botAccountId, setBotAccountId] = useState(botAccounts[0]?.id ?? "");
   const [txHash, setTxHash] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -107,6 +111,10 @@ export function PaymentFlow({
   useEffect(() => {
     if (initialVariantId) setVariantId(initialVariantId);
   }, [initialVariantId]);
+
+  useEffect(() => {
+    if (botAccounts[0]?.id) setBotAccountId(botAccounts[0].id);
+  }, [botAccounts]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -171,12 +179,16 @@ export function PaymentFlow({
       return;
     }
     if (kind === "balance") {
-      if (!hasActivePackage) {
-        setError("Buy a package first, then you can add trading balance.");
+      if (!botAccountId) {
+        setError("Select a bot account to deposit into.");
         return;
       }
       if (!Number.isFinite(dueAmount) || dueAmount < MIN_BALANCE_TOPUP_USD) {
         setError(`Minimum top-up is ${formatUsd(MIN_BALANCE_TOPUP_USD)}`);
+        return;
+      }
+      if (dueAmount > MAX_BALANCE_TOPUP_USD) {
+        setError(`Maximum per payment is ${formatUsd(MAX_BALANCE_TOPUP_USD)}`);
         return;
       }
     }
@@ -193,6 +205,7 @@ export function PaymentFlow({
           kind,
           packageVariantId: kind === "package" ? variantId : undefined,
           amountUsd: kind === "balance" ? dueAmount : undefined,
+          userPackageId: kind === "balance" ? botAccountId : undefined,
           currency,
           txHash,
           userNote: note,
@@ -229,10 +242,10 @@ export function PaymentFlow({
       successBody: `Your ${pkg?.name ?? ""} ${variant ? RISK_LABEL[variant.risk_tier] : ""} plan is now active. Add trading balance so the bot can take XAUUSD trades.`,
     },
     balance: {
-      form: "Deposit trading balance",
-      hint: "Send capital the VPS bot will trade with. After approval it credits your wallet. Withdraw anytime from Cashier.",
-      success: "Trading balance credited",
-      successBody: "The bot can now trade this capital. Withdraw from Cashier whenever you want.",
+      form: "Add balance to bot account",
+      hint: "Deposit more capital into your bot account ID. After approval it credits that bot's available balance.",
+      success: "Balance credited",
+      successBody: "Your bot account balance was updated. Withdraw from Cashier anytime.",
     },
     signal: {
       form: "Legacy signals",
@@ -319,19 +332,19 @@ export function PaymentFlow({
     );
   }
 
-  if (kind === "balance" && !hasActivePackage) {
+  if (kind === "balance" && botAccounts.length === 0) {
     return (
       <div className="rounded-2xl bg-canvas p-6 text-center">
-        <h3 className="text-lg font-bold text-ink">VPS bot required</h3>
+        <h3 className="text-lg font-bold text-ink">No bot account yet</h3>
         <p className="mt-2 text-sm text-muted-label">
-          Buy the VPS bot first. After that deposit is approved you can add
-          trading balance here for the bot to trade.
+          Buy a bot plan first. After approval you&apos;ll get a bot account ID
+          to deposit into.
         </p>
         <Link
           href="/dashboard/packages"
           className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-orange px-4 text-sm font-semibold text-white hover:bg-orange/90"
         >
-          Buy a package
+          Buy Bot
         </Link>
       </div>
     );
@@ -357,17 +370,28 @@ export function PaymentFlow({
           </div>
         )}
         {kind === "balance" && (
-          <div className="space-y-2">
-            <Label htmlFor="topup">Amount (USD)</Label>
-            <Input
-              id="topup"
-              type="number"
-              min={MIN_BALANCE_TOPUP_USD}
-              step="1"
-              className="bg-canvas tabular"
-              value={amountUsd}
-              onChange={(e) => setAmountUsd(e.target.value)}
+          <div className="space-y-4 sm:col-span-2">
+            <BotAccountSelect
+              accounts={botAccounts}
+              value={botAccountId}
+              onChange={setBotAccountId}
             />
+            <div className="space-y-2">
+              <Label htmlFor="topup">Amount (USD)</Label>
+              <Input
+                id="topup"
+                type="number"
+                min={MIN_BALANCE_TOPUP_USD}
+                max={MAX_BALANCE_TOPUP_USD}
+                step="1"
+                className="bg-canvas tabular"
+                value={amountUsd}
+                onChange={(e) => setAmountUsd(e.target.value)}
+              />
+              <p className="text-xs text-muted-label">
+                Max {formatUsd(MAX_BALANCE_TOPUP_USD)} per payment.
+              </p>
+            </div>
           </div>
         )}
         <CurrencyNetworkFields

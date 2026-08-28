@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BotAccountSelect } from "@/components/packages/bot-account-select";
 import { formatUsd } from "@/lib/format";
 import { validateCryptoAddress, addressNetworkHint, isValidCryptoAddress } from "@/lib/address-validation";
 import { CurrencyNetworkFields } from "@/components/finance/currency-network-fields";
@@ -16,22 +17,23 @@ import {
   isPaymentRail,
   type PaymentRail,
 } from "@/lib/wallets";
-import type { Payout, SavedPayoutAddress, WalletBalance } from "@/lib/types";
+import type { Payout, SavedPayoutAddress, UserPackage } from "@/lib/types";
 import { QrScannerDialog } from "@/components/qr/qr-scanner-dialog";
 import { cn } from "@/lib/utils";
 
 export function PayoutFlow({
-  initialWallet,
+  botAccounts = [],
   initialPayouts,
   savedAddresses = [],
   showHistory = true,
 }: {
-  initialWallet: WalletBalance | null;
+  botAccounts?: UserPackage[];
   initialPayouts: Payout[];
   savedAddresses?: SavedPayoutAddress[];
   showHistory?: boolean;
 }) {
-  const [wallet, setWallet] = useState(initialWallet);
+  const [accounts, setAccounts] = useState(botAccounts);
+  const [botAccountId, setBotAccountId] = useState(botAccounts[0]?.id ?? "");
   const [payouts, setPayouts] = useState(initialPayouts);
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<PaymentRail>("USDT_TRC20");
@@ -42,7 +44,8 @@ export function PayoutFlow({
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Payout | null>(null);
 
-  const available = Number(wallet?.available_usd ?? 0);
+  const selectedAccount = accounts.find((a) => a.id === botAccountId);
+  const available = Number(selectedAccount?.available_usd ?? 0);
 
   useEffect(() => {
     const supabase = createClient();
@@ -76,9 +79,12 @@ export function PayoutFlow({
       )
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "wallet_balances" },
+        { event: "UPDATE", schema: "public", table: "user_packages" },
         (payload) => {
-          setWallet(payload.new as WalletBalance);
+          const row = payload.new as UserPackage;
+          setAccounts((prev) =>
+            prev.map((a) => (a.id === row.id ? { ...a, ...row } : a))
+          );
         }
       )
       .subscribe();
@@ -87,6 +93,11 @@ export function PayoutFlow({
       supabase.removeChannel(channel);
     };
   }, []);
+
+  useEffect(() => {
+    if (botAccounts[0]?.id) setBotAccountId(botAccounts[0].id);
+    setAccounts(botAccounts);
+  }, [botAccounts]);
 
   async function submit() {
     setError(null);
@@ -116,6 +127,7 @@ export function PayoutFlow({
           amountUsd: value,
           currency,
           destinationAddress: address,
+          userPackageId: botAccountId,
         }),
       });
       const data = await res.json();
@@ -205,10 +217,29 @@ export function PayoutFlow({
     );
   }
 
+  if (accounts.length === 0) {
+    return (
+      <section className="rounded-2xl bg-canvas p-6 text-center">
+        <h3 className="text-lg font-bold text-ink">No bot account</h3>
+        <p className="mt-2 text-sm text-muted-label">
+          Buy a bot plan to get an account ID you can withdraw from.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-2xl bg-card p-6 shadow-card sm:p-8">
       <p className="text-kicker">Withdraw</p>
       <h2 className="mt-2 text-xl font-bold text-ink">Request a payout</h2>
+
+      <div className="mt-6">
+        <BotAccountSelect
+          accounts={accounts}
+          value={botAccountId}
+          onChange={setBotAccountId}
+        />
+      </div>
 
       <div className="mt-6 rounded-2xl bg-canvas p-5 text-ink sm:p-6">
         <p className="text-kicker">Available balance</p>
@@ -216,7 +247,7 @@ export function PayoutFlow({
           {formatUsd(available)}
         </p>
         <p className="mt-2 text-xs tabular text-muted-label">
-          Pending {formatUsd(wallet?.pending_usd ?? 0)}
+          Pending {formatUsd(selectedAccount?.pending_usd ?? 0)}
         </p>
       </div>
 

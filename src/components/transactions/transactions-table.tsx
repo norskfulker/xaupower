@@ -62,6 +62,7 @@ export function TransactionsTable({
           <option value="payout">Payout</option>
           <option value="package_purchase">Package purchase</option>
           <option value="signal_settlement">Signal settlement</option>
+          <option value="bot_return">Bot return</option>
         </select>
         <select
           className="h-11 rounded-xl border border-border bg-card px-3 text-sm text-ink"
