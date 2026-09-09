@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -8,6 +9,13 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-inter",
   display: "swap",
+});
+
+const featureDisplay = localFont({
+  src: "../../public/fonts/FeatureDisplay-Bold.ttf",
+  variable: "--font-feature-display",
+  display: "swap",
+  weight: "700",
 });
 
 export const metadata: Metadata = {
@@ -22,7 +30,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body
+        className={`${inter.variable} ${featureDisplay.variable} font-sans antialiased`}
+      >
         {children}
         <Toaster position="top-right" richColors closeButton />
       </body>

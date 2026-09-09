@@ -4,6 +4,8 @@ import Script from "next/script";
 import { cn } from "@/lib/utils";
 
 declare module "react" {
+  // Custom TradingView web component element.
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
       "tv-mini-chart": React.DetailedHTMLProps<

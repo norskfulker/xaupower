@@ -8,6 +8,10 @@ import { Label } from "@/components/ui/label";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import {
+  isValidReferralCodeFormat,
+  normalizeReferralCode,
+} from "@/lib/referral";
 
 export function LoginForm() {
   const router = useRouter();
@@ -15,6 +19,9 @@ export function LoginForm() {
   const [email, setEmail] = useState(searchParams.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [referralCode, setReferralCode] = useState(
+    searchParams.get("ref") ?? ""
+  );
   const [mode, setMode] = useState<"signin" | "signup">(
     searchParams.get("email") ? "signup" : "signin"
   );
@@ -23,8 +30,13 @@ export function LoginForm() {
 
   useEffect(() => {
     const preset = searchParams.get("email");
+    const ref = searchParams.get("ref");
     if (preset) {
       setEmail(preset);
+      setMode("signup");
+    }
+    if (ref) {
+      setReferralCode(ref);
       setMode("signup");
     }
   }, [searchParams]);
@@ -41,10 +53,29 @@ export function LoginForm() {
           setError("Enter your full name");
           return;
         }
+        const normalizedRef = normalizeReferralCode(referralCode);
+        if (referralCode.trim()) {
+          if (!isValidReferralCodeFormat(referralCode)) {
+            setError("Referral code must be 4 to 12 letters or numbers");
+            return;
+          }
+          const { data: exists } = await supabase.rpc("referral_code_exists", {
+            p_code: normalizedRef,
+          });
+          if (!exists) {
+            setError("That referral code was not found");
+            return;
+          }
+        }
         const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName.trim() } },
+          options: {
+            data: {
+              full_name: fullName.trim(),
+              ...(normalizedRef ? { referral_code: normalizedRef } : {}),
+            },
+          },
         });
         if (signUpError) {
           setError(signUpError.message);
@@ -107,19 +138,6 @@ export function LoginForm() {
     }
   }
 
-  async function signInWithGoogle() {
-    setError(null);
-    const supabase = createClient();
-    const next = searchParams.get("next") ?? "/dashboard";
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-      },
-    });
-    if (oauthError) setError(oauthError.message);
-  }
-
   const reduce = useReducedMotion();
 
   return (
@@ -165,6 +183,20 @@ export function LoginForm() {
             className="bg-white"
           />
         </div>
+        {mode === "signup" && (
+          <div className="space-y-2">
+            <Label htmlFor="referral-code">Referral code (optional)</Label>
+            <Input
+              id="referral-code"
+              type="text"
+              autoComplete="off"
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+              className="bg-white uppercase"
+              placeholder="If someone invited you"
+            />
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <Input
@@ -193,24 +225,6 @@ export function LoginForm() {
           {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
         </Button>
       </form>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-canvas px-2 text-muted-label">or</span>
-        </div>
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full bg-white"
-        onClick={signInWithGoogle}
-      >
-        Continue with Google
-      </Button>
 
       <p className="text-center text-sm text-muted-label">
         {mode === "signin" ? (

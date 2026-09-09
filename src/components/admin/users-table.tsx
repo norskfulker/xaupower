@@ -6,6 +6,13 @@ import { formatUsd } from "@/lib/format";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type AdminUserRow = {
   id: string;
@@ -82,15 +89,23 @@ export function UsersTable({ rows }: { rows: AdminUserRow[] }) {
             onChange={(e) => setQ(e.target.value)}
             className="w-56 border-border bg-canvas text-ink"
           />
-          <select
-            className="h-11 rounded-md border border-border bg-canvas px-3 text-sm text-ink"
-            value={sort}
-            onChange={(e) => setSort(e.target.value as typeof sort)}
-          >
-            <option value="email">Sort by email</option>
-            <option value="deposited">Sort by deposited</option>
-            <option value="balance">Sort by balance</option>
-          </select>
+          <div className="w-48">
+            <Select
+              value={sort}
+              onValueChange={(value) =>
+                value && setSort(value as typeof sort)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="email">Sort by email</SelectItem>
+                <SelectItem value="deposited">Sort by deposited</SelectItem>
+                <SelectItem value="balance">Sort by balance</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
       <div className="overflow-x-auto rounded-2xl bg-card shadow-card">

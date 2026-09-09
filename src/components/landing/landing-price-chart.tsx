@@ -107,7 +107,6 @@ export function LandingPriceChart({
     const [first, ...rest] = points;
     let d = `M${first[0]} ${first[1]}`;
     for (let i = 0; i < rest.length - 1; i++) {
-      const [x0, y0] = i === 0 ? first : rest[i - 1];
       const [x1, y1] = rest[i];
       const [x2, y2] = rest[i + 1];
       const cx = x1;

@@ -11,11 +11,11 @@ import {
   Banknote,
   BarChart3,
   Boxes,
+  Gift,
   CandlestickChart,
   CreditCard,
   LayoutDashboard,
   Palette,
-  Settings,
   Shield,
   Users,
   Wallet,
@@ -35,7 +35,7 @@ export type NavItem = {
 export const USER_NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/packages", label: "Buy Bot", icon: Boxes },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/referrals", label: "Referrals", icon: Gift },
   {
     href: "/admin",
     label: "Admin",

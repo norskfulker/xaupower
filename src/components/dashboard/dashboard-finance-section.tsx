@@ -4,7 +4,7 @@ import type { Package, PackageVariant } from "@/lib/types";
 import Link from "next/link";
 
 const TELEGRAM_URL =
-  process.env.NEXT_PUBLIC_TELEGRAM_URL ?? "https://t.me/xaupower";
+  process.env.NEXT_PUBLIC_TELEGRAM_URL ?? "https://t.me/xaupowersignals";
 
 export function DashboardFinanceSection({
   hasActivePackage,
@@ -18,7 +18,7 @@ export function DashboardFinanceSection({
       <p className="text-kicker">What to do</p>
       <h2 className="mt-2 text-xl font-black tracking-tight text-ink">
         {hasActivePackage
-          ? "VPS bot is active — add trading balance"
+          ? "Your bot is active"
           : "Two ways to use XAUPower"}
       </h2>
       <div className="mt-6 grid items-stretch gap-4 sm:grid-cols-2 sm:gap-5">
@@ -31,10 +31,9 @@ export function DashboardFinanceSection({
               <span className="inline-flex size-7 items-center justify-center rounded-full bg-orange text-xs font-bold text-white">
                 1
               </span>
-              <p className="mt-3 font-semibold text-ink">Add bot trading balance</p>
+              <p className="mt-3 font-semibold text-ink">Add funds</p>
               <p className="mt-1 text-sm text-muted-label">
-                Deposit capital the VPS bot trades with. Withdraw that balance
-                from Payout after admin approval.
+                Top up the bot you want to run.
               </p>
             </Link>
             <a
@@ -64,8 +63,7 @@ export function DashboardFinanceSection({
               </span>
               <p className="mt-3 font-semibold text-ink">Buy Bot</p>
               <p className="mt-1 text-sm text-muted-label">
-                We set up the VPS. Then you add trading balance here and the bot
-                takes XAUUSD trades with that capital.
+                Pick a plan and get your own bot ID.
               </p>
             </Link>
             <a

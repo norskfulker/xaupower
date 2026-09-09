@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { validateCryptoAddress } from "@/lib/address-validation";
 import { isPaymentRail } from "@/lib/wallets";
+import { MIN_WITHDRAWAL_USD } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
@@ -23,8 +24,11 @@ export async function POST(request: Request) {
     };
 
     const amount = Number(body.amountUsd);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      return NextResponse.json({ error: "Enter a valid amount" }, { status: 400 });
+    if (!Number.isFinite(amount) || amount < MIN_WITHDRAWAL_USD) {
+      return NextResponse.json(
+        { error: `Minimum withdrawal is $${MIN_WITHDRAWAL_USD.toFixed(2)}` },
+        { status: 400 }
+      );
     }
 
     if (!body.userPackageId) {

@@ -11,6 +11,11 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-inter)", "Inter", "sans-serif"],
+        display: [
+          "var(--font-feature-display)",
+          "var(--font-inter)",
+          "sans-serif",
+        ],
       },
       colors: {
         ink: "hsl(var(--ink))",
@@ -62,8 +67,8 @@ const config: Config = {
         "3xl": "calc(var(--radius) + 8px)",
       },
       boxShadow: {
-        float: "0 8px 32px rgba(30, 25, 14, 0.08)",
-        card: "0 2px 16px rgba(30, 25, 14, 0.06)",
+        float: "0 12px 40px rgba(18, 24, 38, 0.1)",
+        card: "0 2px 14px rgba(18, 24, 38, 0.06)",
       },
     },
   },

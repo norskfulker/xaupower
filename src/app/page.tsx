@@ -7,9 +7,9 @@ import { LandingStickyBar } from "@/components/landing/landing-sticky-bar";
 import { LandingPerformanceTable } from "@/components/landing/landing-tables";
 import { PackagesGrid } from "@/components/packages/packages-grid";
 import { SurfaceCard } from "@/components/ui/surface-card";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
-import type { Package } from "@/lib/types";
+import type { Package, PackageVariant } from "@/lib/types";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
@@ -30,7 +30,7 @@ export const metadata = {
 };
 
 const TELEGRAM_URL =
-  process.env.NEXT_PUBLIC_TELEGRAM_URL ?? "https://t.me/xaupower";
+  process.env.NEXT_PUBLIC_TELEGRAM_URL ?? "https://t.me/xaupowersignals";
 
 const ctaPrimary = cn(
   buttonVariants({ size: "lg" }),
@@ -83,17 +83,17 @@ const STEPS = [
   {
     n: "01",
     title: "Buy a Bot Plan",
-    body: "Choose your risk term and unlock VPS bot access for your account.",
+    body: "Each plan becomes its own bot ID. You can run more than one bot at a time.",
   },
   {
     n: "02",
-    title: "Bot executes without emotion",
-    body: "Trades run to the profit target and risk rules — or you follow our signals. No hesitation.",
+    title: "Bot executes trades for you",
+    body: "That bot trades to its own rules and plan size. Other bots stay independent.",
   },
   {
     n: "03",
-    title: "Withdraw after closed trades",
-    body: "When a trade closes, take profit from Cashier. Your capital stays under your control.",
+    title: "Withdraw after settlement",
+    body: "Cash out from the same bot ID in Cashier. Balances are never pooled across bots.",
   },
 ] as const;
 
@@ -130,12 +130,15 @@ export default async function HomePage() {
   const xauQuote = quotes.find((q) => q.pair === "XAUUSD") ?? null;
 
   const supabase = createClient();
-  const { data: packagesData } = await supabase
-    .from("packages")
-    .select("*")
-    .eq("is_active", true)
-    .order("price_usd");
+  const [{ data: packagesData }, { data: variantsData }] = await Promise.all([
+    supabase.from("packages").select("*").eq("is_active", true).order("price_usd"),
+    supabase.from("package_variants").select("*"),
+  ]);
   const packages = (packagesData ?? []) as Package[];
+  const variants = ((variantsData ?? []) as PackageVariant[]).map((v) => ({
+    ...v,
+    roadmap: Array.isArray(v.roadmap) ? v.roadmap : [],
+  }));
 
   return (
     <div className="min-h-screen bg-canvas pt-28 text-ink pb-[calc(8rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
@@ -216,10 +219,10 @@ export default async function HomePage() {
         <div className="text-center">
           <p className="text-kicker text-orange">Why the bot wins</p>
           <h2 className="mx-auto mt-2 max-w-2xl text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
-            Built on highly advanced IRT & SMC Strategies
+            Built on advanced IRT & SMC strategies
           </h2>
         </div>
-        <ul className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:mt-10 sm:grid-cols-2 sm:gap-6">
+        <ul className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:mt-10 sm:grid-cols-3 sm:gap-6">
           {FEATURES.map(({ title, body, icon: Icon }) => (
             <li key={title}>
               <SurfaceCard className="flex h-full flex-col gap-4">
@@ -245,10 +248,10 @@ export default async function HomePage() {
             From fear to automated execution
           </h2>
         </div>
-        <ol className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:mt-10 sm:gap-6 md:grid-cols-3">
-          {STEPS.map(({ n, title, body }) => (
-            <li key={n}>
-              <SurfaceCard className="flex h-full min-h-[12rem] flex-col">
+        <ol className="mt-8 flex flex-col items-stretch gap-3 sm:mt-10 sm:flex-row sm:items-center sm:gap-2">
+          {STEPS.map(({ n, title, body }, i) => (
+            <li key={n} className="flex flex-1 flex-col sm:flex-row sm:items-center">
+              <SurfaceCard className="flex h-full min-h-[12rem] flex-1 flex-col">
                 <p className="text-kicker text-orange">{n}</p>
                 <h3 className="mt-3 text-lg font-bold leading-snug text-ink">
                   {title}
@@ -257,6 +260,14 @@ export default async function HomePage() {
                   {body}
                 </p>
               </SurfaceCard>
+              {i < STEPS.length - 1 && (
+                <div
+                  className="flex shrink-0 items-center justify-center py-1 text-orange sm:px-2 sm:py-0"
+                  aria-hidden
+                >
+                  <ArrowRight className="size-6 rotate-90 sm:rotate-0" />
+                </div>
+              )}
             </li>
           ))}
         </ol>
@@ -274,13 +285,13 @@ export default async function HomePage() {
               Pick your VPS bot access
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-muted-label">
-              3-week plans with daily returns credited at 03:00 UTC. Choose a
-              tier and let the bot execute without emotion.
+              Each plan runs as its own bot — you can hold more than one at a time.
             </p>
           </div>
           <div className="mt-8 sm:mt-10">
             <PackagesGrid
               packages={packages}
+              variants={variants}
               ctaHref={plansHref}
               ctaLabel="Buy Bot"
             />

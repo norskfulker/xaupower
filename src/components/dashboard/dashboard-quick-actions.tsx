@@ -2,13 +2,13 @@
 
 import { CashierDialog } from "@/components/dashboard/cashier-dialog";
 import { SurfaceCard } from "@/components/ui/surface-card";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
 import { Cpu, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 const TELEGRAM_URL =
-  process.env.NEXT_PUBLIC_TELEGRAM_URL ?? "https://t.me/xaupower";
+  process.env.NEXT_PUBLIC_TELEGRAM_URL ?? "https://t.me/xaupowersignals";
 
 export function DashboardQuickActions() {
   return (

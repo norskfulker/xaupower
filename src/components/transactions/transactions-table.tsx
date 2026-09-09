@@ -6,6 +6,13 @@ import type { LedgerTransaction, TransactionType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function TransactionsTable({
   rows,
@@ -52,27 +59,38 @@ export function TransactionsTable({
           onChange={(e) => setQ(e.target.value)}
           className="max-w-xs border-border bg-white text-ink"
         />
-        <select
-          className="h-11 rounded-xl border border-border bg-card px-3 text-sm text-ink"
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-        >
-          <option value="all">All types</option>
-          <option value="deposit">Deposit</option>
-          <option value="payout">Payout</option>
-          <option value="package_purchase">Package purchase</option>
-          <option value="signal_settlement">Signal settlement</option>
-          <option value="bot_return">Bot return</option>
-        </select>
-        <select
-          className="h-11 rounded-xl border border-border bg-card px-3 text-sm text-ink"
-          value={sort}
-          onChange={(e) => setSort(e.target.value as typeof sort)}
-        >
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-          <option value="amount">Largest amount</option>
-        </select>
+        <div className="w-48">
+          <Select value={type} onValueChange={(value) => value && setType(value)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All types</SelectItem>
+              <SelectItem value="deposit">Deposit</SelectItem>
+              <SelectItem value="payout">Payout</SelectItem>
+              <SelectItem value="package_purchase">Package purchase</SelectItem>
+              <SelectItem value="signal_settlement">Signal settlement</SelectItem>
+              <SelectItem value="bot_return">Bot return</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-48">
+          <Select
+            value={sort}
+            onValueChange={(value) =>
+              value && setSort(value as typeof sort)
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
+              <SelectItem value="amount">Largest amount</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-2xl bg-card shadow-card">

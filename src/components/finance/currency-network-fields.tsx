@@ -25,12 +25,10 @@ export function CurrencyNetworkFields({
   rail,
   rails,
   onChange,
-  triggerClassName = "w-full h-11 rounded-md border-border bg-canvas px-3.5",
 }: {
   rail: PaymentRail;
   rails: PaymentRail[];
   onChange: (rail: PaymentRail) => void;
-  triggerClassName?: string;
 }) {
   const asset = RAIL_ASSET[rail];
   const chain = RAIL_CHAIN[rail];
@@ -57,7 +55,7 @@ export function CurrencyNetworkFields({
           value={asset}
           onValueChange={(v) => v && setAsset(v as AssetSymbol)}
         >
-          <SelectTrigger className={triggerClassName}>
+          <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -75,7 +73,7 @@ export function CurrencyNetworkFields({
           value={chain}
           onValueChange={(v) => v && setChain(v as ChainId)}
         >
-          <SelectTrigger className={triggerClassName}>
+          <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

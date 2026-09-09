@@ -21,46 +21,61 @@ export default async function TransactionsPage() {
     supabase
       .from("user_packages")
       .select(
-        "expires_at, variant_snapshot, package_variants(risk_tier, packages(name), price_usd, max_lot_size, profit_target_pct, max_drawdown_pct, roadmap)"
+        "id, account_code, expires_at, variant_snapshot, package_variants(risk_tier, strategy_label, packages(name), price_usd, max_lot_size, profit_target_pct, max_drawdown_pct, roadmap)"
       )
       .eq("user_id", user!.id)
       .eq("status", "active")
-      .maybeSingle(),
+      .order("purchased_at", { ascending: false }),
   ]);
 
-  const terms = resolveUserPackageTerms(
-    (pkgRes.data ?? {}) as Pick<
-      UserPackage,
-      "variant_snapshot" | "package_variants"
-    >
-  );
-  const label = packageDisplayLabel(terms);
-  const daysLeft = daysRemaining(pkgRes.data?.expires_at);
+  const bots = (pkgRes.data ?? []) as unknown as UserPackage[];
 
   return (
     <div className="space-y-8">
       <div>
         <p className="text-kicker">Ledger</p>
         <h1 className="text-display mt-1 text-3xl sm:text-4xl">Transactions</h1>
-      </div>
-      {terms && (
-        <div className="rounded-2xl bg-card p-6 shadow-card sm:p-7">
-          <p className="text-kicker">Purchased package terms</p>
-          <p className="mt-3 text-xl font-black tracking-tight text-ink">
-            {label}
-            {daysLeft != null ? ` · ${daysLeft} days left` : ""}
+        {bots.length > 1 && (
+          <p className="mt-2 text-sm text-muted-label">
+            You have {bots.length} active bots. Ledger rows can belong to
+            different bot IDs.
           </p>
-          <div className="mt-5 grid items-stretch gap-4 sm:grid-cols-3 sm:gap-5">
-            <Term
-              label="Bot profit target"
-              value={`${terms.profit_target_pct}%`}
-            />
-            <Term label="Max lots" value={String(terms.max_lot_size)} />
-            <Term
-              label="Max drawdown band"
-              value={`${terms.max_drawdown_pct}%`}
-            />
-          </div>
+        )}
+      </div>
+      {bots.length > 0 && (
+        <div className="grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-5">
+          {bots.map((bot) => {
+            const terms = resolveUserPackageTerms(bot);
+            const label = packageDisplayLabel(terms);
+            const daysLeft = daysRemaining(bot.expires_at);
+            return (
+              <div
+                key={bot.id ?? bot.account_code}
+                className="rounded-2xl bg-card p-6 shadow-card"
+              >
+                <p className="font-mono text-sm font-bold text-orange">
+                  {bot.account_code ?? "Bot"}
+                </p>
+                <p className="mt-2 text-lg font-black tracking-tight text-ink">
+                  {label}
+                  {daysLeft != null ? ` · ${daysLeft}d left` : ""}
+                </p>
+                {terms && (
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                    <Term
+                      label="Target"
+                      value={`${terms.profit_target_pct}%`}
+                    />
+                    <Term label="Lots" value={String(terms.max_lot_size)} />
+                    <Term
+                      label="DD"
+                      value={`${terms.max_drawdown_pct}%`}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
       <TransactionsTable rows={(data ?? []) as LedgerTransaction[]} />
@@ -70,11 +85,11 @@ export default async function TransactionsPage() {
 
 function Term({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex min-h-[6.5rem] flex-col rounded-2xl bg-canvas p-4 sm:p-5">
-      <p className="text-kicker">{label}</p>
-      <p className="mt-3 text-2xl font-black tabular text-orange sm:text-3xl">
-        {value}
+    <div className="rounded-xl bg-canvas px-2 py-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-label">
+        {label}
       </p>
+      <p className="mt-1 text-sm font-black tabular text-orange">{value}</p>
     </div>
   );
 }

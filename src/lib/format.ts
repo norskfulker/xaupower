@@ -41,21 +41,15 @@ export function daysRemaining(expiresAt: string | null | undefined): number | nu
   return Math.ceil(ms / (1000 * 60 * 60 * 24));
 }
 
-export const PLAN_ACCESS_TERM = "3 weeks";
-export const PLAN_ACCESS_DAYS = 21;
-
-export const DAILY_RETURN_RANGE: Record<
-  "Assay" | "Bullion" | "Vault",
-  { min: number; max: number }
-> = {
-  Assay: { min: 5, max: 8 },
-  Bullion: { min: 6, max: 12 },
-  Vault: { min: 7, max: 14 },
-};
-
-export function dailyReturnLabel(name: "Assay" | "Bullion" | "Vault"): string {
-  const range = DAILY_RETURN_RANGE[name];
-  return `${range.min}–${range.max}% daily`;
+export function accessElapsedPct(
+  startAt: string | null | undefined,
+  expiresAt: string | null | undefined
+): number {
+  if (!startAt || !expiresAt) return 0;
+  const start = new Date(startAt).getTime();
+  const end = new Date(expiresAt).getTime();
+  const span = Math.max(end - start, 1);
+  return Math.min(100, Math.max(0, ((Date.now() - start) / span) * 100));
 }
 
 export const RISK_LABEL: Record<
@@ -78,16 +72,14 @@ export const WEEKLY_PROFIT_PCT: Record<
 
 export const PAYMENT_KIND_LABEL: Record<"package" | "balance" | "signal", string> =
   {
-    package: "VPS bot setup",
-    balance: "Bot trading balance",
+    package: "New bot purchase",
+    balance: "Add funds to bot",
     signal: "Signals (legacy)",
   };
 
 export const PAYMENT_KIND_BLURB: Record<"package" | "balance" | "signal", string> =
   {
-    package:
-      "Setup fee. After approval we provision the VPS bot. Trading capital is a separate deposit.",
-    balance:
-      "Trading capital the VPS bot uses. After approval it credits the user wallet and can be paid out later.",
+    package: "Starts a new bot after approval.",
+    balance: "Adds to the selected bot after approval.",
     signal: "Legacy signal purchases — no longer offered.",
   };

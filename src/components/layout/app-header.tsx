@@ -1,6 +1,5 @@
 "use client";
 
-import { ProfileMenu } from "@/components/layout/profile-menu";
 import { FloatingBottomNav } from "@/components/layout/floating-bottom-nav";
 import {
   FloatingTopNav,

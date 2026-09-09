@@ -48,14 +48,18 @@ export default async function DashboardLayout({
       .select("variant_snapshot, package_variants(risk_tier, packages(name))")
       .eq("user_id", user.id)
       .eq("status", "active")
-      .maybeSingle(),
+      .order("purchased_at", { ascending: false }),
     getPriceQuotes(),
   ]);
 
-  const terms = resolveUserPackageTerms(
-    (pkgRes.data ?? {}) as Pick<UserPackage, "variant_snapshot" | "package_variants">
-  );
-  const memberLabel = packageDisplayLabel(terms) ?? "Member";
+  const activePkgs = (pkgRes.data ?? []) as unknown as UserPackage[];
+  const firstTerms = activePkgs[0]
+    ? resolveUserPackageTerms(activePkgs[0])
+    : null;
+  const memberLabel =
+    activePkgs.length > 1
+      ? `${activePkgs.length} bots`
+      : packageDisplayLabel(firstTerms) ?? "Member";
 
   return (
     <AppHeader

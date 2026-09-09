@@ -7,16 +7,14 @@ export const metadata = {
 export default function CashierPage({
   searchParams,
 }: {
-  searchParams: { tab?: string };
+  searchParams: { tab?: string; bot?: string };
 }) {
-  const tab =
-    searchParams.tab === "withdraw" || searchParams.tab === "buybot"
-      ? searchParams.tab
-      : "balance";
+  const tab = searchParams.tab === "withdraw" ? "withdraw" : "balance";
 
   return (
     <CashierWorkspace
-      initialTab={tab as "balance" | "buybot" | "withdraw"}
+      initialTab={tab}
+      initialBotId={searchParams.bot}
     />
   );
 }

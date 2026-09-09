@@ -26,7 +26,7 @@ export function BotAccountSelect({
   if (accounts.length === 0) {
     return (
       <p className="text-sm text-muted-label">
-        No active bot account. Buy a bot plan first.
+        No active bot account. Buy a bot plan first. Each bot gets its own ID.
       </p>
     );
   }
@@ -35,31 +35,27 @@ export function BotAccountSelect({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <Label>Bot account ID</Label>
+      <Label>
+        {accounts.length > 1 ? "Choose which bot" : "Bot account ID"}
+      </Label>
       <Select
         value={value || selected?.id}
         onValueChange={(next) => next && onChange(next)}
       >
-        <SelectTrigger
-          className="h-11 w-full rounded-md border-border bg-canvas px-3.5 text-left"
-        >
+        <SelectTrigger>
           <SelectValue placeholder="Select bot account">
             {selected?.account_code ?? "Select account"} ·{" "}
             {formatUsd(selected?.available_usd ?? 0)}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="rounded-md p-1">
+        <SelectContent>
           {accounts.map((account) => (
-            <SelectItem
-              key={account.id}
-              value={account.id}
-              className="rounded-md py-2.5 pl-3 pr-9"
-            >
+            <SelectItem key={account.id} value={account.id}>
               <span className="font-mono font-semibold text-ink">
                 {account.account_code ?? account.id.slice(0, 8)}
               </span>
               <span className="text-muted-label">
-                · {formatUsd(account.available_usd ?? 0)} available
+                · {formatUsd(account.available_usd ?? 0)}
               </span>
             </SelectItem>
           ))}

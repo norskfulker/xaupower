@@ -6,41 +6,40 @@
 
 @layer base {
   :root {
-    /* Golden Vault — cream paper, warm gold, deep bronze ink */
-    --ink: 30 25% 14%;
-    --canvas: 40 45% 96%;
-    --orange: 38 72% 42%;
-    --gold: 42 65% 52%;
-    --teal: 158 42% 36%;
-    --hotpink: 12 70% 48%;
-    --muted-label: 30 12% 42%;
+    /* Graphite Vault — cool stone canvas, deep ink, brass accent */
+    --ink: 220 18% 12%;
+    --canvas: 210 16% 96%;
+    --orange: 36 88% 48%;
+    --gold: 40 72% 52%;
+    --teal: 168 48% 34%;
+    --hotpink: 358 72% 48%;
+    --muted-label: 220 10% 42%;
 
-    /* shadcn mapped to brand */
-    --background: 40 45% 96%;
-    --foreground: 30 25% 14%;
-    --card: 40 50% 99%;
-    --card-foreground: 30 25% 14%;
-    --popover: 40 50% 99%;
-    --popover-foreground: 30 25% 14%;
-    --primary: 38 72% 42%;
+    --background: 210 16% 96%;
+    --foreground: 220 18% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 18% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 18% 12%;
+    --primary: 36 88% 48%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 40 30% 92%;
-    --secondary-foreground: 30 25% 14%;
-    --muted: 40 25% 90%;
-    --muted-foreground: 30 12% 40%;
-    --accent: 42 65% 52%;
-    --accent-foreground: 30 25% 14%;
-    --destructive: 12 70% 48%;
+    --secondary: 210 14% 92%;
+    --secondary-foreground: 220 18% 12%;
+    --muted: 210 12% 90%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 40 72% 52%;
+    --accent-foreground: 220 18% 12%;
+    --destructive: 358 72% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 36 22% 84%;
-    --input: 36 22% 84%;
-    --ring: 38 72% 42%;
-    --radius: 1.25rem;
-    --chart-1: 38 72% 42%;
-    --chart-2: 158 42% 36%;
-    --chart-3: 42 65% 52%;
-    --chart-4: 12 70% 48%;
-    --chart-5: 30 12% 42%;
+    --border: 214 14% 86%;
+    --input: 214 14% 86%;
+    --ring: 36 88% 48%;
+    --radius: 1rem;
+    --chart-1: 36 88% 48%;
+    --chart-2: 168 48% 34%;
+    --chart-3: 40 72% 52%;
+    --chart-4: 358 72% 48%;
+    --chart-5: 220 10% 42%;
   }
 
   * {
@@ -50,6 +49,16 @@
   body {
     @apply bg-canvas text-ink antialiased;
     font-family: var(--font-inter), Inter, sans-serif;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsl(36 88% 48% / 0.08), transparent),
+      linear-gradient(180deg, hsl(210 18% 97%) 0%, hsl(210 14% 94%) 100%);
+    background-attachment: fixed;
+  }
+
+  .font-display {
+    font-family: var(--font-feature-display), var(--font-inter), sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   .tabular {
@@ -61,23 +70,27 @@
   }
 
   .text-display {
-    @apply text-4xl font-black leading-[1.1] tracking-tight sm:text-5xl;
+    @apply font-display text-4xl leading-[1.1] tracking-tight sm:text-5xl;
+  }
+
+  .text-heading {
+    @apply font-display text-2xl leading-tight tracking-tight sm:text-3xl;
   }
 
   .text-metric {
-    @apply text-4xl font-black leading-none tracking-tight tabular sm:text-5xl;
+    @apply font-display text-4xl leading-none tracking-tight tabular sm:text-5xl;
   }
 
   .shadow-float {
-    box-shadow: 0 8px 32px rgba(30, 25, 14, 0.08);
+    box-shadow: 0 12px 40px rgba(18, 24, 38, 0.1);
   }
 
   .shadow-card {
-    box-shadow: 0 2px 16px rgba(30, 25, 14, 0.06);
+    box-shadow: 0 2px 14px rgba(18, 24, 38, 0.06);
   }
 
   .surface-float {
-    @apply rounded-2xl border border-border/50 bg-white/90 shadow-float backdrop-blur-md;
+    @apply rounded-2xl border border-border/60 bg-white/85 shadow-float backdrop-blur-md;
   }
 
   input[type="range"] {

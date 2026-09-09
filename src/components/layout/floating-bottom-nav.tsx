@@ -145,11 +145,11 @@ export function FloatingBottomNav({
             item={USER_NAV[1]}
             active={pathname.startsWith("/dashboard/packages")}
           />
-          <CashierBottomNavItem active={cashierActive} />
           <MobileNavLink
             item={USER_NAV[2]}
-            active={pathname.startsWith("/dashboard/settings")}
+            active={pathname.startsWith("/dashboard/referrals")}
           />
+          <CashierBottomNavItem active={cashierActive} />
           {isAdmin && (
             <button
               type="button"

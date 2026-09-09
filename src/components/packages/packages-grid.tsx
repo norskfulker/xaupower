@@ -2,16 +2,12 @@
 
 import Link from "next/link";
 import { SurfaceCard } from "@/components/ui/surface-card";
-import { BOT_PLAN_SPECS, planSpecLines } from "@/lib/bot-plans";
 import {
-  dailyReturnLabel,
-  formatUsdInteger,
-  PLAN_ACCESS_TERM,
-} from "@/lib/format";
-import type { PackageName } from "@/lib/types";
+  formatAccessTerm,
+} from "@/lib/package-display";
+import { formatUsdInteger } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Package } from "@/lib/types";
-import { Check } from "lucide-react";
+import type { Package, PackageVariant } from "@/lib/types";
 
 export function PackagesGrid({
   packages,
@@ -19,6 +15,7 @@ export function PackagesGrid({
   ctaLabel = "Buy Bot",
 }: {
   packages: Package[];
+  variants?: PackageVariant[];
   ctaHref: string;
   ctaLabel?: string;
 }) {
@@ -28,12 +25,7 @@ export function PackagesGrid({
 
   return (
     <div className="grid grid-cols-1 items-stretch gap-4 sm:gap-6 md:grid-cols-3">
-      {ordered.map((pkg) => {
-        const planName = pkg.name as PackageName;
-        const spec = BOT_PLAN_SPECS[planName];
-        const bullets = planSpecLines(planName);
-
-        return (
+      {ordered.map((pkg) => (
           <SurfaceCard
             key={pkg.id}
             className={cn(
@@ -53,22 +45,11 @@ export function PackagesGrid({
               </p>
             )}
             <p className="text-metric mt-5 text-ink">
-              {formatUsdInteger(spec.minDeposit)}
+              {formatUsdInteger(pkg.price_usd)}
             </p>
             <p className="mt-2 text-sm font-medium text-muted-label">
-              min deposit · {PLAN_ACCESS_TERM}
+              min deposit · {formatAccessTerm(pkg)}
             </p>
-            <p className="mt-1 text-xs font-semibold text-teal">
-              {dailyReturnLabel(planName)} daily
-            </p>
-            <ul className="mt-5 space-y-2.5 text-sm text-ink/80">
-              {bullets.slice(1).map((line) => (
-                <li key={line} className="flex justify-center gap-2">
-                  <Check className="mt-0.5 size-4 shrink-0 text-teal" />
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
             <div className="mt-auto pt-6">
               <Link
                 href={ctaHref}
@@ -78,8 +59,7 @@ export function PackagesGrid({
               </Link>
             </div>
           </SurfaceCard>
-        );
-      })}
+      ))}
     </div>
   );
 }

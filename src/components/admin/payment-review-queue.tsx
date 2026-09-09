@@ -73,7 +73,7 @@ export function PaymentReviewQueue({
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-kicker">Queue</p>
-          <h2 className="mt-1 text-xl font-bold text-ink">Wallet deposit review</h2>
+          <h2 className="mt-1 text-xl font-bold text-ink">Payment review</h2>
         </div>
         <span className="rounded-full bg-orange/20 px-3 py-1 text-xs font-semibold text-orange">
           {queue.length} pending
@@ -82,7 +82,7 @@ export function PaymentReviewQueue({
 
       {queue.length === 0 ? (
         <div className="rounded-2xl bg-card p-6 text-sm text-muted-label shadow-card sm:p-7">
-          No deposits waiting for review.
+          No payments waiting for review.
         </div>
       ) : (
         <ul className="space-y-3">
@@ -106,6 +106,10 @@ export function PaymentReviewQueue({
                     <p className="mt-1 text-sm text-ink/70">
                       {PAYMENT_KIND_LABEL[p.kind ?? "package"]}
                       {pkgLabel ? ` · ${pkgLabel}` : ""}
+                      {p.kind === "balance" && p.user_package_id
+                        ? " · existing bot top-up"
+                        : ""}
+                      {p.kind === "package" ? " · creates new bot ID" : ""}
                     </p>
                     <p className="mt-1 max-w-md text-xs text-ink/40">
                       {PAYMENT_KIND_BLURB[p.kind ?? "package"]}

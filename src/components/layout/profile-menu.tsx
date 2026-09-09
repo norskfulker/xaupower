@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { History, LogOut, UserRound } from "lucide-react";
+import { History, LogOut, Settings, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function ProfileMenu({
@@ -40,10 +40,8 @@ export function ProfileMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          "flex items-center gap-3 rounded-lg px-1.5 py-1 text-left outline-none transition",
-          tone === "dark"
-            ? "hover:bg-white/10"
-            : "hover:bg-ink/5"
+          "flex items-center gap-3 rounded-xl px-1.5 py-1 text-left outline-none transition",
+          tone === "dark" ? "hover:bg-white/10" : "hover:bg-ink/5"
         )}
       >
         <span className="hidden text-right sm:block">
@@ -68,7 +66,7 @@ export function ProfileMenu({
         </span>
         <span
           className={cn(
-            "flex size-10 shrink-0 items-center justify-center rounded-lg text-sm font-bold",
+            "flex size-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold",
             tone === "dark" ? "bg-orange/15 text-orange" : "bg-ink text-white"
           )}
         >
@@ -77,14 +75,21 @@ export function ProfileMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="min-w-52 w-56">
         <DropdownMenuItem
-          className="cursor-pointer gap-2 py-2"
+          className="cursor-pointer gap-2"
           onClick={() => router.push("/dashboard/settings")}
         >
           <UserRound className="size-4" />
           Open profile
         </DropdownMenuItem>
         <DropdownMenuItem
-          className="cursor-pointer gap-2 py-2"
+          className="cursor-pointer gap-2"
+          onClick={() => router.push("/dashboard/settings")}
+        >
+          <Settings className="size-4" />
+          Settings
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer gap-2"
           onClick={() => router.push("/dashboard/transactions")}
         >
           <History className="size-4" />
@@ -92,7 +97,7 @@ export function ProfileMenu({
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          className="cursor-pointer gap-2 py-2"
+          className="cursor-pointer gap-2"
           variant="destructive"
           onClick={() => void signOut()}
         >

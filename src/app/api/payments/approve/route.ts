@@ -32,10 +32,10 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error("approve_payment_and_activate failed", error);
-      return NextResponse.json(
-        { error: "Could not approve payment" },
-        { status: 500 }
-      );
+      const message =
+        error.message?.replace(/^.*ERROR:\s*/i, "").split("\n")[0] ||
+        "Could not approve payment";
+      return NextResponse.json({ error: message }, { status: 400 });
     }
 
     return NextResponse.json({ ok: true });

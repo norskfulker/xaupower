@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { formatAccessTerm } from "@/lib/package-display";
 import {
   formatUsd,
   formatUsdInteger,
-  PLAN_ACCESS_TERM,
   RISK_LABEL,
   WEEKLY_PROFIT_PCT,
 } from "@/lib/format";
@@ -102,7 +102,7 @@ export function PackageVariantPicker({
               )}
             >
               <span className="block text-sm font-semibold">{pkg.name}</span>
-              <span className="mt-1 block text-lg font-extrabold tabular">
+              <span className="mt-1 block font-display text-lg tabular">
                 {formatUsdInteger(pkg.price_usd)}
               </span>
               <span
@@ -111,7 +111,7 @@ export function PackageVariantPicker({
                   active ? "text-ink/70" : "text-muted-label"
                 )}
               >
-                {PLAN_ACCESS_TERM}
+                {formatAccessTerm(pkg)}
               </span>
             </button>
           );
@@ -194,7 +194,7 @@ function Meta({
   return (
     <div className="flex min-h-[6.5rem] flex-col rounded-2xl bg-canvas p-4 sm:p-5">
       <p className="text-kicker">{label}</p>
-      <p className="mt-3 text-2xl font-black tabular text-orange sm:text-3xl">{value}</p>
+      <p className="mt-3 font-display text-2xl tabular text-orange sm:text-3xl">{value}</p>
       {hint && <p className="mt-auto pt-2 text-xs text-muted-label">{hint}</p>}
     </div>
   );

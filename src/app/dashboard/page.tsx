@@ -1,66 +1,79 @@
 import { getAuthUser, createClient } from "@/lib/supabase/server";
-import { formatUsd, daysRemaining, RISK_LABEL } from "@/lib/format";
+import { formatUsd } from "@/lib/format";
 import { StatCard } from "@/components/ui/stat-card";
-import { SurfaceCard } from "@/components/ui/surface-card";
 import { AccessHistoryCards } from "@/components/dashboard/access-history-cards";
+import { BotAccountCards } from "@/components/dashboard/bot-account-cards";
 import { DashboardQuickActions } from "@/components/dashboard/dashboard-quick-actions";
 import { DashboardHowItWorks } from "@/components/dashboard/dashboard-how-it-works";
-import type { UserPackage, WalletBalance } from "@/lib/types";
-import { packageDisplayLabel, resolveUserPackageTerms } from "@/lib/package-terms";
-import { format } from "date-fns";
+import type { LedgerTransaction, Payment, UserPackage, WalletBalance } from "@/lib/types";
+import {
+  packageDisplayLabel,
+  resolveUserPackageTerms,
+} from "@/lib/package-terms";
 import { Banknote, Boxes, TrendingUp } from "lucide-react";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
 
 export default async function DashboardPage() {
   const supabase = createClient();
   const user = await getAuthUser();
 
-  const [userPkgRes, historyRes, walletRes] = await Promise.all([
+  const [activeRes, historyRes, pendingRes, walletRes, profitsRes] =
+    await Promise.all([
     supabase
       .from("user_packages")
       .select(
-        "id, account_code, available_usd, pending_usd, purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, packages(name))"
+        "id, status, account_code, available_usd, pending_usd, capital_usd, purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, strategy_label, price_usd, packages(name))"
       )
       .eq("user_id", user!.id)
       .eq("status", "active")
-      .maybeSingle(),
+      .order("purchased_at", { ascending: false }),
     supabase
       .from("user_packages")
       .select(
-        "id, status, purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, packages(name), max_lot_size, profit_target_pct, max_drawdown_pct)"
+        "id, status, purchased_at, expires_at, account_code, available_usd, variant_snapshot, package_variants(risk_tier, strategy_label, price_usd, packages(name))"
       )
       .eq("user_id", user!.id)
       .order("purchased_at", { ascending: false }),
+    supabase
+      .from("payments")
+      .select(
+        "id, kind, status, amount_usd, created_at, user_package_id, package_variant_id, variant_snapshot, package_variants(id, risk_tier, price_usd, package_id, packages(name))"
+      )
+      .eq("user_id", user!.id)
+      .eq("kind", "package")
+      .in("status", ["pending_review", "waiting", "confirming"])
+      .order("created_at", { ascending: false }),
     supabase
       .from("wallet_balances")
       .select("available_usd, pending_usd, profit_pips")
       .eq("user_id", user!.id)
       .maybeSingle(),
+    supabase
+      .from("transactions")
+      .select("*")
+      .eq("user_id", user!.id)
+      .eq("type", "bot_return")
+      .order("created_at", { ascending: false })
+      .limit(200),
   ]);
 
-  const activePkg = userPkgRes.data;
+  const activeBots = (activeRes.data ?? []) as unknown as UserPackage[];
   const history = (historyRes.data ?? []) as unknown as UserPackage[];
+  const pendingPayments = (pendingRes.data ?? []) as unknown as Payment[];
+  const profitReturns = (profitsRes.data ?? []) as LedgerTransaction[];
   const wallet = walletRes.data as Pick<
     WalletBalance,
     "available_usd" | "pending_usd" | "profit_pips"
   > | null;
 
-  const daysLeft = daysRemaining(activePkg?.expires_at);
-  const terms = resolveUserPackageTerms(
-    (activePkg ?? {}) as Pick<UserPackage, "variant_snapshot" | "package_variants">
+  const botBalance = activeBots.reduce(
+    (sum, bot) => sum + Number(bot.available_usd ?? 0),
+    0
   );
-  const name = packageDisplayLabel(terms);
-  const botActive = Boolean(name);
   const profitPips = Number(wallet?.profit_pips ?? 0);
-
-  let elapsedPct = 0;
-  if (activePkg?.purchased_at && activePkg.expires_at) {
-    const start = new Date(activePkg.purchased_at).getTime();
-    const end = new Date(activePkg.expires_at).getTime();
-    const span = Math.max(end - start, 1);
-    elapsedPct = Math.min(100, Math.max(0, ((Date.now() - start) / span) * 100));
-  }
+  const firstTerms = activeBots[0]
+    ? resolveUserPackageTerms(activeBots[0])
+    : null;
+  const firstLabel = packageDisplayLabel(firstTerms);
 
   return (
     <div className="space-y-8">
@@ -68,25 +81,37 @@ export default async function DashboardPage() {
 
       <div className="grid items-stretch gap-4 sm:grid-cols-3 sm:gap-6">
         <StatCard
-          label="Available balance"
-          value={formatUsd(activePkg?.available_usd ?? wallet?.available_usd)}
+          label={
+            activeBots.length > 1 ? "Available across bots" : "Available"
+          }
+          value={formatUsd(botBalance || wallet?.available_usd)}
           hint={
-            activePkg?.account_code
-              ? `Bot ${activePkg.account_code}`
-              : "Available for withdrawal"
+            activeBots.length > 1
+              ? `${activeBots.length} active bots`
+              : activeBots[0]?.account_code ?? "Per bot account"
           }
           icon={Banknote}
         />
         <StatCard
-          label="Active bot"
-          value={name ?? "None"}
+          label={activeBots.length === 1 ? "Active bot" : "Active bots"}
+          value={
+            activeBots.length === 0
+              ? "None"
+              : activeBots.length === 1
+                ? (firstLabel ?? "1")
+                : String(activeBots.length)
+          }
           hint={
-            name
-              ? `${daysLeft ?? 0} days remaining`
-              : "No active access period"
+            activeBots.length > 1
+              ? "Each bot has its own ID and term"
+              : activeBots.length === 1
+                ? activeBots[0]?.account_code ?? "Running"
+                : pendingPayments.length > 0
+                  ? `${pendingPayments.length} pending purchase${pendingPayments.length === 1 ? "" : "s"}`
+                  : "No active access period"
           }
           icon={Boxes}
-          valueClassName={botActive ? "text-teal" : undefined}
+          valueClassName={activeBots.length > 0 ? "text-teal" : undefined}
         />
         <StatCard
           label="Profit in pips"
@@ -99,98 +124,13 @@ export default async function DashboardPage() {
 
       <DashboardHowItWorks />
 
-      <div className="grid items-stretch gap-4 sm:gap-6 lg:grid-cols-2">
-        <SurfaceCard className="flex h-full flex-col">
-          <p className="text-kicker">Bot details</p>
-          {terms && activePkg ? (
-            <>
-              <h2 className="mt-3 text-2xl font-black leading-tight tracking-tight text-ink">
-                {name}
-              </h2>
-              <dl className="mt-5 space-y-3.5 text-sm">
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-label">Plan</dt>
-                  <dd className="font-semibold text-ink">{terms.package_name}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-label">Risk tier</dt>
-                  <dd className="font-semibold text-ink">
-                    {RISK_LABEL[terms.risk_tier]}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-label">Start</dt>
-                  <dd className="tabular text-ink">
-                    {activePkg.purchased_at
-                      ? format(new Date(activePkg.purchased_at), "d MMM yyyy")
-                      : "—"}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-label">End</dt>
-                  <dd className="tabular text-ink">
-                    {activePkg.expires_at
-                      ? format(new Date(activePkg.expires_at), "d MMM yyyy")
-                      : "—"}
-                  </dd>
-                </div>
-                <div className="border-t border-border pt-3">
-                  <div className="mb-1 flex justify-between text-xs text-muted-label">
-                    <span>Access period</span>
-                    <span>{daysLeft ?? 0} days remaining</span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-canvas">
-                    <div
-                      className="h-full rounded-full bg-orange"
-                      style={{ width: `${elapsedPct}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-between gap-4 border-t border-border pt-3">
-                  <dt className="text-muted-label">Bot account ID</dt>
-                  <dd className="font-mono text-sm font-semibold text-orange">
-                    {activePkg.account_code ?? "—"}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-label">Available balance</dt>
-                  <dd className="tabular font-semibold text-ink">
-                    {formatUsd(activePkg.available_usd ?? 0)}
-                  </dd>
-                </div>
-              </dl>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  href="/dashboard/packages"
-                  prefetch={false}
-                  className={buttonVariants({
-                    className: "bg-orange text-white hover:bg-orange/90",
-                  })}
-                >
-                  Renew bot
-                </Link>
-                <Link
-                  href="/dashboard/packages"
-                  prefetch={false}
-                  className={buttonVariants({
-                    variant: "outline",
-                    className:
-                      "border-border bg-canvas text-ink hover:bg-orange/10",
-                  })}
-                >
-                  Upgrade plan
-                </Link>
-              </div>
-            </>
-          ) : (
-            <p className="mt-4 text-sm text-muted-label">
-              No active bot. Choose one under Buy Bot.
-            </p>
-          )}
-        </SurfaceCard>
+      <BotAccountCards bots={activeBots} pendingPurchases={pendingPayments} />
 
-        <AccessHistoryCards rows={history} />
-      </div>
+      <AccessHistoryCards
+        rows={history}
+        pendingPayments={pendingPayments}
+        profitReturns={profitReturns}
+      />
     </div>
   );
 }

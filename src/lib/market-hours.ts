@@ -30,7 +30,7 @@ function formatDuration(ms: number): string {
 function nextSundayOpen(now: Date): Date {
   const d = new Date(now);
   const day = d.getUTCDay();
-  let add = (7 - day) % 7;
+  const add = (7 - day) % 7;
   const candidate = new Date(
     Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + add, 22, 0, 0)
   );

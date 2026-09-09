@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Wordmark } from "@/components/brand/wordmark";
 import { ProfileMenu } from "@/components/layout/profile-menu";
 import { TickerStrip } from "@/components/ticker/ticker-strip";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
 import type { PriceQuote } from "@/lib/prices";
 

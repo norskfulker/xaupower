@@ -1,46 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { motion, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
-import { Check, Copy, Loader2, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BOT_PLAN_SPECS } from "@/lib/bot-plans";
+import { CryptoDepositMethods } from "@/components/payment/crypto-deposit-methods";
+import { displayStrategyLabel } from "@/lib/package-display";
 import {
   formatUsd,
   formatUsdInteger,
-  PLAN_ACCESS_TERM,
+  RISK_LABEL,
+  WEEKLY_PROFIT_PCT,
 } from "@/lib/format";
 import type { DepositAddress, Package, PackageVariant, Payment } from "@/lib/types";
-import { MAX_BALANCE_TOPUP_USD, PLACEHOLDER_DEPOSIT_PREFIX } from "@/lib/types";
-import { CurrencyNetworkFields } from "@/components/finance/currency-network-fields";
+import { MAX_BALANCE_TOPUP_USD } from "@/lib/types";
+import { clampUsdInput } from "@/lib/amount";
 import {
-  ASSET_LABEL,
-  CHAIN_LABEL,
-  RAIL_ASSET,
-  RAIL_CHAIN,
-  RAIL_HINT,
   firstAvailableRail,
   formatRail,
-  railNetwork,
-  railsForNetworks,
   type PaymentRail,
 } from "@/lib/wallets";
 
-type Phase = "form" | "pending" | "success" | "rejected";
+type Phase = "details" | "deposit" | "pending" | "success" | "rejected";
 
 export function BotPurchaseFlow({
   package: pkg,
   variant,
   depositAddresses,
+  onSubmitted,
 }: {
   package: Package;
   variant: PackageVariant;
   depositAddresses: DepositAddress[];
+  onSubmitted?: (payment: Payment) => void;
 }) {
+  const reduceMotion = useReducedMotion();
+  const [step, setStep] = useState<Phase>("details");
   const [currency, setCurrency] = useState<PaymentRail>(() =>
     firstAvailableRail(
       depositAddresses.filter((d) => d.is_active).map((d) => d.currency)
@@ -51,22 +50,15 @@ export function BotPurchaseFlow({
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [phase, setPhase] = useState<Phase>("form");
   const [activePayment, setActivePayment] = useState<Payment | null>(null);
 
-  const planName = pkg.name as "Assay" | "Bullion" | "Vault";
-  const strategyLabel = BOT_PLAN_SPECS[planName].strategy;
+  const strategyLabel = displayStrategyLabel(variant);
   const planAsset = Math.round(Number(pkg.price_usd ?? variant.price_usd ?? 0));
   const maxExtra = MAX_BALANCE_TOPUP_USD - planAsset;
-  const extraAmount = additionalAmount.trim() === "" ? 0 : Number(additionalAmount);
+  const extraAmount =
+    additionalAmount.trim() === "" ? 0 : Number(additionalAmount);
   const totalDue = planAsset + (Number.isFinite(extraAmount) ? extraAmount : 0);
-
-  const availableRails = railsForNetworks(
-    depositAddresses.filter((d) => d.is_active).map((d) => d.currency)
-  );
-  const deposit = depositAddresses.find(
-    (d) => d.currency === railNetwork(currency) && d.is_active
-  );
+  const riskTier = variant.risk_tier;
 
   useEffect(() => {
     const supabase = createClient();
@@ -80,11 +72,11 @@ export function BotPurchaseFlow({
           if (!activePayment || row.id !== activePayment.id) return;
           setActivePayment(row);
           if (row.status === "confirmed") {
-            setPhase("success");
+            setStep("success");
             toast.success("Bot plan activated");
           }
           if (row.status === "rejected") {
-            setPhase("rejected");
+            setStep("rejected");
             toast.message("Payment rejected");
           }
         }
@@ -95,24 +87,16 @@ export function BotPurchaseFlow({
     };
   }, [activePayment, variant.id]);
 
-  function copyAddress() {
-    if (!deposit?.address) return;
-    void navigator.clipboard.writeText(deposit.address);
-    toast.message("Address copied");
-  }
-
-  function copyAmountDue() {
-    void navigator.clipboard.writeText(formatUsd(totalDue));
-    toast.message("Amount due copied");
-  }
-
   async function submit() {
     setError(null);
     if (!Number.isFinite(totalDue) || totalDue < planAsset) {
       setError("Invalid funding amount");
       return;
     }
-    if (additionalAmount.trim() !== "" && (!Number.isFinite(extraAmount) || extraAmount < 0)) {
+    if (
+      additionalAmount.trim() !== "" &&
+      (!Number.isFinite(extraAmount) || extraAmount < 0)
+    ) {
       setError("Enter a valid additional amount or leave blank");
       return;
     }
@@ -144,7 +128,30 @@ export function BotPurchaseFlow({
         return;
       }
       setActivePayment(data.payment as Payment);
-      setPhase("pending");
+      setStep("pending");
+      onSubmitted?.({
+        ...(data.payment as Payment),
+        kind: "package",
+        status: (data.payment as Payment).status ?? "pending_review",
+        variant_snapshot:
+          (data.payment as Payment).variant_snapshot ??
+          ({
+            id: variant.id,
+            package_id: variant.package_id,
+            package_name: pkg.name,
+            risk_tier: variant.risk_tier,
+            strategy_label: strategyLabel,
+            price_usd: Number(variant.price_usd),
+            max_lot_size: Number(variant.max_lot_size),
+            profit_target_pct: Number(variant.profit_target_pct),
+            max_drawdown_pct: Number(variant.max_drawdown_pct),
+            roadmap: variant.roadmap ?? [],
+          } as Payment["variant_snapshot"]),
+        package_variants: {
+          ...variant,
+          packages: pkg,
+        },
+      });
       toast.message("Submitted for review");
     } catch {
       setError("Could not submit payment. Try again.");
@@ -153,35 +160,33 @@ export function BotPurchaseFlow({
     }
   }
 
-  if (phase === "success") {
+  if (step === "success") {
     return (
       <div className="text-center">
         <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-teal/15">
           <Check className="size-7 text-teal" />
         </div>
-        <h3 className="mt-4 text-2xl font-extrabold text-ink">Bot purchase submitted</h3>
+        <h3 className="mt-4 font-display text-xl text-ink">Bot activated</h3>
         <p className="mt-2 text-sm text-muted-label">
-          After approval your {pkg.name} {strategyLabel} bot activates
-          for {PLAN_ACCESS_TERM}. The full amount credits your bot account balance.
-          Add more anytime from Cashier once the bot is running.
+          {pkg.name} is live. Check transaction history for your bot ID.
         </p>
       </div>
     );
   }
 
-  if (phase === "rejected") {
+  if (step === "rejected") {
     return (
       <div className="text-center">
         <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-hotpink/15">
           <X className="size-7 text-hotpink" />
         </div>
-        <h3 className="mt-4 text-2xl font-extrabold text-ink">Payment rejected</h3>
+        <h3 className="mt-4 font-display text-xl text-ink">Rejected</h3>
         <p className="mt-2 text-sm text-muted-label">
-          {activePayment?.admin_note || "This payment was not approved."}
+          {activePayment?.admin_note || "Payment was not approved."}
         </p>
         <Button
           className="mt-6 bg-orange text-white hover:bg-orange/90"
-          onClick={() => setPhase("form")}
+          onClick={() => setStep("details")}
         >
           Try again
         </Button>
@@ -189,23 +194,18 @@ export function BotPurchaseFlow({
     );
   }
 
-  if (phase === "pending") {
+  if (step === "pending") {
     return (
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-bold text-ink">Submitted for review</h3>
-            <p className="text-sm text-muted-label">
-              An admin must approve this payment before your bot is provisioned.
-            </p>
-          </div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-display text-lg text-ink">Pending review</h3>
           <span className="inline-flex items-center gap-2 rounded-full bg-orange/15 px-3 py-1 text-xs font-semibold text-ink">
             <span className="size-2 animate-pulse rounded-full bg-orange" />
-            Pending review
+            Pending
           </span>
         </div>
         <div className="rounded-xl bg-canvas p-4 text-sm">
-          <p className="tabular font-medium">
+          <p className="font-display tabular">
             {formatUsd(activePayment?.amount_usd ?? 0)} ·{" "}
             {activePayment ? formatRail(activePayment.currency) : ""}
           </p>
@@ -218,153 +218,119 @@ export function BotPurchaseFlow({
   }
 
   return (
-    <div className="space-y-5 border-t border-border pt-6">
-      <div>
-        <h3 className="text-lg font-bold text-ink">Fund your Bot to start working</h3>
-        <p className="text-sm text-muted-label">
-          Add funds to your bot plan to activate it. You can add more later from Cashier.
-        </p>
+    <motion.div
+      key={step}
+      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className="space-y-5 border-t border-border pt-6"
+    >
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-label">
+        <span
+          className={
+            step === "details" ? "text-orange" : "text-muted-label"
+          }
+        >
+          1 · Plan
+        </span>
+        <span>/</span>
+        <span
+          className={
+            step === "deposit" ? "text-orange" : "text-muted-label"
+          }
+        >
+          2 · Deposit
+        </span>
       </div>
 
-      <div className="space-y-4 rounded-2xl bg-canvas p-5">
-        <div className="flex items-center justify-between gap-4 border-b border-border/60 pb-4">
-          <div>
-            <p className="text-kicker">Bot plan</p>
-            <p className="mt-1 text-sm text-muted-label">
-              Credits your bot account on approval
-            </p>
-          </div>
-          <p className="text-2xl font-black tabular text-ink">
-            {formatUsdInteger(planAsset)}
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="additional-amount">Add funds (optional)</Label>
-          <Input
-            id="additional-amount"
-            type="number"
-            min={0}
-            max={maxExtra}
-            step="1"
-            placeholder="0"
-            className="bg-white tabular"
-            value={additionalAmount}
-            onChange={(e) => setAdditionalAmount(e.target.value)}
-          />
-          <p className="text-xs text-muted-label">
-            Optional extra if you want more capital working from day one. Max{" "}
-            {formatUsdInteger(MAX_BALANCE_TOPUP_USD)} per payment.
-          </p>
-        </div>
-
-        <div className="flex items-center justify-between gap-4 border-t border-border/60 pt-4">
-          <p className="text-sm font-semibold text-ink">Total to send</p>
-          <p className="text-2xl font-black tabular text-orange">
-            {formatUsdInteger(totalDue)}
-          </p>
-        </div>
-      </div>
-
-      <CurrencyNetworkFields
-        rail={currency}
-        rails={availableRails}
-        onChange={setCurrency}
-      />
-
-      {deposit ? (
-        <div className="grid gap-4 rounded-xl border border-border bg-canvas p-4 md:grid-cols-[160px_1fr]">
-          <div className="flex flex-col items-center">
-            <div className="rounded-lg bg-white p-2">
-              <QRCodeSVG value={deposit.address} size={120} />
-            </div>
-            <p className="mt-3 text-[11px] uppercase tracking-wide text-muted-label">
-              Amount due
-            </p>
-            <div className="flex items-center gap-1">
-              <p className="text-xl font-bold tabular text-ink">
-                {formatUsdInteger(totalDue)}
-              </p>
-              <Button type="button" size="icon" variant="ghost" onClick={copyAmountDue}>
-                <Copy className="size-4" />
-                <span className="sr-only">Copy amount due</span>
-              </Button>
+      {step === "details" && (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Meta
+              label="Risk Terms"
+              value={RISK_LABEL[riskTier] ?? strategyLabel}
+            />
+            <Meta label="Amount" value={formatUsdInteger(planAsset)} />
+            <Meta label="Lot Size" value={String(variant.max_lot_size)} />
+            <Meta
+              label="Max Drawdown"
+              value={`${variant.max_drawdown_pct}%`}
+            />
+            <Meta
+              label="Target Profit"
+              value={`${WEEKLY_PROFIT_PCT[riskTier] ?? variant.profit_target_pct}%`}
+            />
+            <div className="rounded-2xl bg-canvas p-4 sm:col-span-2 sm:p-5">
+              <Label htmlFor="additional-capital">
+                Additional capital (optional)
+              </Label>
+              <Input
+                id="additional-capital"
+                type="number"
+                min={0}
+                max={maxExtra}
+                step="1"
+                placeholder="0"
+                className="mt-2 bg-white tabular"
+                value={additionalAmount}
+                onChange={(e) =>
+                  setAdditionalAmount(
+                    clampUsdInput(e.target.value, Math.max(0, maxExtra))
+                  )
+                }
+              />
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="text-xs text-muted-label">Total due</p>
+                <p className="font-display text-xl tabular text-orange">
+                  {formatUsdInteger(totalDue)}
+                </p>
+              </div>
             </div>
           </div>
-          <div>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-              <dt className="text-muted-label">Currency</dt>
-              <dd className="font-semibold text-ink">
-                {ASSET_LABEL[RAIL_ASSET[currency]]}
-              </dd>
-              <dt className="text-muted-label">Network</dt>
-              <dd className="font-semibold text-ink">
-                {CHAIN_LABEL[RAIL_CHAIN[currency]]}
-              </dd>
-            </dl>
-            <p className="mt-3 text-xs uppercase tracking-wide text-muted-label">
-              Send to
-            </p>
-            <div className="mt-1 flex items-start gap-2">
-              <code className="flex-1 break-all text-sm tabular text-ink">
-                {deposit.address}
-              </code>
-              <Button type="button" size="icon" variant="ghost" onClick={copyAddress}>
-                <Copy className="size-4" />
-                <span className="sr-only">Copy address</span>
-              </Button>
-            </div>
-            <p className="mt-2 text-xs text-muted-label">{RAIL_HINT[currency]}</p>
-            {deposit.address.startsWith(PLACEHOLDER_DEPOSIT_PREFIX) && (
-              <p className="mt-2 text-xs text-hotpink">
-                Placeholder address — confirm with support before sending funds.
-              </p>
-            )}
-          </div>
-        </div>
-      ) : (
-        <p className="text-sm text-hotpink">
-          No active {railNetwork(currency)} deposit address. Contact support.
-        </p>
+          <Button
+            className="w-full bg-orange text-white hover:bg-orange/90 sm:w-auto"
+            onClick={() => setStep("deposit")}
+          >
+            Continue
+          </Button>
+        </>
       )}
 
-      <div className="space-y-4 border-t border-border pt-4">
-        <p className="text-sm font-semibold text-ink">I&apos;ve sent the payment</p>
-        <div className="space-y-2">
-          <Label htmlFor="bot-tx">Transaction hash</Label>
-          <Input
-            id="bot-tx"
-            className="bg-canvas tabular"
-            value={txHash}
-            onChange={(e) => setTxHash(e.target.value)}
-            required
+      {step === "deposit" && (
+        <>
+          <button
+            type="button"
+            onClick={() => setStep("details")}
+            className="text-sm font-semibold text-orange hover:underline"
+          >
+            ← Back to plan details
+          </button>
+          <CryptoDepositMethods
+            depositAddresses={depositAddresses}
+            currency={currency}
+            onCurrencyChange={setCurrency}
+            amountDue={totalDue}
+            txHash={txHash}
+            onTxHashChange={setTxHash}
+            note={note}
+            onNoteChange={setNote}
+            error={error}
+            loading={loading}
+            onSubmit={() => void submit()}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="bot-note">Note (optional)</Label>
-          <Input
-            id="bot-note"
-            className="bg-canvas"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="e.g. sent from exchange"
-          />
-        </div>
-        {error && <p className="text-sm text-hotpink">{error}</p>}
-        <Button
-          className="bg-orange text-white hover:bg-orange/90"
-          disabled={loading || !deposit}
-          onClick={submit}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="animate-spin" /> Submitting
-            </>
-          ) : (
-            "Submit for admin review"
-          )}
-        </Button>
-      </div>
+        </>
+      )}
+    </motion.div>
+  );
+}
+
+function Meta({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-canvas p-4 sm:p-5">
+      <p className="text-kicker">{label}</p>
+      <p className="mt-3 font-display text-2xl tabular text-ink sm:text-3xl">
+        {value}
+      </p>
     </div>
   );
 }

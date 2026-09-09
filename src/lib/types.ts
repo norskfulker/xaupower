@@ -1,5 +1,6 @@
 export type UserRole = "user" | "admin";
-export type PackageName = "Assay" | "Bullion" | "Vault";
+/** Package name from Supabase `packages.name` (e.g. Aurum, Sentinel, Aero). */
+export type PackageName = string;
 export type UserPackageStatus = "pending" | "active" | "expired";
 export type WalletNetwork = import("@/lib/wallets").WalletNetwork;
 export type CryptoCurrency = import("@/lib/wallets").CryptoCurrency;
@@ -38,6 +39,8 @@ export interface Profile {
   role: UserRole;
   phone: string | null;
   notification_preferences: NotificationPreferences;
+  referral_code: string;
+  referred_by: string | null;
   created_at: string;
 }
 
@@ -64,6 +67,11 @@ export interface Package {
   features: string[];
   is_featured: boolean;
   is_active: boolean;
+  access_term_days: number;
+  trades_per_day: number | null;
+  daily_return_min_pct: number | null;
+  daily_return_max_pct: number | null;
+  max_loss_pct: number | null;
 }
 
 export interface RoadmapStep {
@@ -79,6 +87,8 @@ export interface PackageVariant {
   max_lot_size: number;
   profit_target_pct: number;
   max_drawdown_pct: number;
+  strategy_label: string;
+  is_default: boolean;
   roadmap: RoadmapStep[];
   packages?: Package;
 }
@@ -88,10 +98,14 @@ export interface VariantSnapshot {
   package_id: string;
   package_name: string;
   risk_tier: RiskTier;
+  strategy_label?: string;
   price_usd: number;
   max_lot_size: number;
   profit_target_pct: number;
   max_drawdown_pct: number;
+  access_term_days?: number;
+  daily_return_min_pct?: number;
+  daily_return_max_pct?: number;
   roadmap: RoadmapStep[];
 }
 
@@ -105,6 +119,7 @@ export interface UserPackage {
   account_code?: string | null;
   available_usd?: number;
   pending_usd?: number;
+  capital_usd?: number;
   variant_snapshot?: VariantSnapshot | null;
   package_variants?: PackageVariant & { packages?: Package };
 }
@@ -209,6 +224,7 @@ export interface UserSignalAccess {
 export const PLACEHOLDER_DEPOSIT_PREFIX = "PLACEHOLDER_";
 export const SIGNAL_PRICE_USD = 49;
 export const MIN_BALANCE_TOPUP_USD = 10;
+export const MIN_WITHDRAWAL_USD = 10;
 export const MAX_BALANCE_TOPUP_USD = 10_000_000;
 export const TRADINGVIEW_CHART_URL =
   "https://www.tradingview.com/chart/?symbol=OANDA:XAUUSD";

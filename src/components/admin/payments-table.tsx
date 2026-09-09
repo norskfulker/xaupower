@@ -6,6 +6,13 @@ import { paymentPackageLabel } from "@/lib/package-terms";
 import { formatRail } from "@/lib/wallets";
 import { cn } from "@/lib/utils";
 import type { Payment } from "@/lib/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function PaymentsTable({ payments }: { payments: Payment[] }) {
   const [status, setStatus] = useState<string>("all");
@@ -21,21 +28,24 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
           <p className="text-kicker">Admin</p>
           <h2 className="mt-1 text-display text-3xl sm:text-4xl">Payments</h2>
         </div>
-        <select
-          className="h-11 rounded-xl border border-border bg-canvas px-3 text-sm text-ink"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="all">All statuses</option>
-          <option value="pending_review">Pending review</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="rejected">Rejected</option>
-          <option value="waiting">Waiting</option>
-          <option value="confirming">Confirming</option>
-          <option value="partially_paid">Partially paid</option>
-          <option value="failed">Failed</option>
-          <option value="expired">Expired</option>
-        </select>
+        <div className="w-52">
+          <Select value={status} onValueChange={(value) => value && setStatus(value)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="pending_review">Pending review</SelectItem>
+              <SelectItem value="confirmed">Confirmed</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="waiting">Waiting</SelectItem>
+              <SelectItem value="confirming">Confirming</SelectItem>
+              <SelectItem value="partially_paid">Partially paid</SelectItem>
+              <SelectItem value="failed">Failed</SelectItem>
+              <SelectItem value="expired">Expired</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="overflow-x-auto rounded-2xl bg-card shadow-card">
         <table className="w-full min-w-[720px] text-left text-sm">

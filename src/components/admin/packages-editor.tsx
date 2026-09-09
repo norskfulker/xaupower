@@ -23,7 +23,9 @@ export function PackagesEditor({ initialRows }: { initialRows: Row[] }) {
   const [editing, setEditing] = useState<Row | null>(null);
 
   const grouped = useMemo(() => {
-    const names = ["Assay", "Bullion", "Vault"] as const;
+    const names = Array.from(
+      new Set(rows.map((r) => r.packages?.name).filter(Boolean))
+    ).sort() as string[];
     return names.map((name) => ({
       name,
       rows: rows.filter((r) => r.packages?.name === name),
@@ -56,7 +58,7 @@ export function PackagesEditor({ initialRows }: { initialRows: Row[] }) {
               g.rows.map((row) => (
                 <tr key={row.id} className="border-t border-border">
                   <td className="px-3 py-2 font-medium">{g.name}</td>
-                  <td className="px-3 py-2">{RISK_LABEL[row.risk_tier]}</td>
+                  <td className="px-3 py-2">{row.strategy_label || RISK_LABEL[row.risk_tier]}</td>
                   <td className="px-3 py-2 tabular">
                     {formatUsd(row.price_usd)}
                   </td>
@@ -182,7 +184,7 @@ function EditorForm({
     <>
       <SheetHeader>
         <SheetTitle className="text-ink">
-          {row.packages?.name} · {RISK_LABEL[row.risk_tier]}
+          {row.packages?.name} · {row.strategy_label || RISK_LABEL[row.risk_tier]}
         </SheetTitle>
         <SheetDescription className="text-ink/50">
           {row.activeCount} active customer
