@@ -10,7 +10,7 @@ import {
   packageDisplayLabel,
   resolveUserPackageTerms,
 } from "@/lib/package-terms";
-import { Banknote, Boxes, TrendingUp } from "lucide-react";
+import { Banknote, Boxes } from "lucide-react";
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -18,43 +18,43 @@ export default async function DashboardPage() {
 
   const [activeRes, historyRes, pendingRes, walletRes, profitsRes] =
     await Promise.all([
-    supabase
-      .from("user_packages")
-      .select(
-        "id, status, account_code, available_usd, pending_usd, capital_usd, purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, strategy_label, price_usd, packages(name))"
-      )
-      .eq("user_id", user!.id)
-      .eq("status", "active")
-      .order("purchased_at", { ascending: false }),
-    supabase
-      .from("user_packages")
-      .select(
-        "id, status, purchased_at, expires_at, account_code, available_usd, variant_snapshot, package_variants(risk_tier, strategy_label, price_usd, packages(name))"
-      )
-      .eq("user_id", user!.id)
-      .order("purchased_at", { ascending: false }),
-    supabase
-      .from("payments")
-      .select(
-        "id, kind, status, amount_usd, created_at, user_package_id, package_variant_id, variant_snapshot, package_variants(id, risk_tier, price_usd, package_id, packages(name))"
-      )
-      .eq("user_id", user!.id)
-      .eq("kind", "package")
-      .in("status", ["pending_review", "waiting", "confirming"])
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("wallet_balances")
-      .select("available_usd, pending_usd, profit_pips")
-      .eq("user_id", user!.id)
-      .maybeSingle(),
-    supabase
-      .from("transactions")
-      .select("*")
-      .eq("user_id", user!.id)
-      .eq("type", "bot_return")
-      .order("created_at", { ascending: false })
-      .limit(200),
-  ]);
+      supabase
+        .from("user_packages")
+        .select(
+          "id, status, account_code, available_usd, pending_usd, capital_usd, purchased_at, expires_at, variant_snapshot, package_variants(risk_tier, strategy_label, price_usd, packages(name))"
+        )
+        .eq("user_id", user!.id)
+        .eq("status", "active")
+        .order("purchased_at", { ascending: false }),
+      supabase
+        .from("user_packages")
+        .select(
+          "id, status, purchased_at, expires_at, account_code, available_usd, variant_snapshot, package_variants(risk_tier, strategy_label, price_usd, packages(name))"
+        )
+        .eq("user_id", user!.id)
+        .order("purchased_at", { ascending: false }),
+      supabase
+        .from("payments")
+        .select(
+          "id, kind, status, amount_usd, created_at, user_package_id, package_variant_id, variant_snapshot, package_variants(id, risk_tier, price_usd, package_id, packages(name))"
+        )
+        .eq("user_id", user!.id)
+        .eq("kind", "package")
+        .in("status", ["pending_review", "waiting", "confirming"])
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("wallet_balances")
+        .select("available_usd, pending_usd")
+        .eq("user_id", user!.id)
+        .maybeSingle(),
+      supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user!.id)
+        .eq("type", "bot_return")
+        .order("created_at", { ascending: false })
+        .limit(200),
+    ]);
 
   const activeBots = (activeRes.data ?? []) as unknown as UserPackage[];
   const history = (historyRes.data ?? []) as unknown as UserPackage[];
@@ -62,14 +62,13 @@ export default async function DashboardPage() {
   const profitReturns = (profitsRes.data ?? []) as LedgerTransaction[];
   const wallet = walletRes.data as Pick<
     WalletBalance,
-    "available_usd" | "pending_usd" | "profit_pips"
+    "available_usd" | "pending_usd"
   > | null;
 
   const botBalance = activeBots.reduce(
     (sum, bot) => sum + Number(bot.available_usd ?? 0),
     0
   );
-  const profitPips = Number(wallet?.profit_pips ?? 0);
   const firstTerms = activeBots[0]
     ? resolveUserPackageTerms(activeBots[0])
     : null;
@@ -79,7 +78,7 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <DashboardQuickActions />
 
-      <div className="grid items-stretch gap-4 sm:grid-cols-3 sm:gap-6">
+      <div className="grid items-stretch gap-4 sm:grid-cols-2 sm:gap-6">
         <StatCard
           label={
             activeBots.length > 1 ? "Available across bots" : "Available"
@@ -113,18 +112,15 @@ export default async function DashboardPage() {
           icon={Boxes}
           valueClassName={activeBots.length > 0 ? "text-teal" : undefined}
         />
-        <StatCard
-          label="Profit in pips"
-          value={`${profitPips >= 0 ? "+" : ""}${profitPips.toFixed(1)}`}
-          hint="Updated by admin"
-          icon={TrendingUp}
-          valueClassName={profitPips >= 0 ? "text-teal" : "text-hotpink"}
-        />
       </div>
 
       <DashboardHowItWorks />
 
-      <BotAccountCards bots={activeBots} pendingPurchases={pendingPayments} />
+      <BotAccountCards
+        bots={activeBots}
+        pendingPurchases={pendingPayments}
+        profitReturns={profitReturns}
+      />
 
       <AccessHistoryCards
         rows={history}

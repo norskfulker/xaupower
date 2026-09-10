@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { StatusPill } from "@/components/ui/status-pill";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { Button } from "@/components/ui/button";
+import { BotHistoryDialog, parseReturnPct } from "@/components/dashboard/bot-history-dialog";
 import { formatUsd, formatUsdInteger } from "@/lib/format";
 import {
   packageDisplayLabel,
@@ -43,11 +44,6 @@ function paymentToHistoryRow(payment: Payment): HistoryRow {
     package_variants: payment.package_variants,
     source: "payment",
   };
-}
-
-function parseReturnPct(description: string): string | null {
-  const match = description.match(/(\d+(?:\.\d+)?)%/);
-  return match?.[1] ?? null;
 }
 
 export function AccessHistoryCards({
@@ -168,7 +164,16 @@ export function AccessHistoryCards({
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
-                  <StatusPill status={row.status} />
+                  <div className="flex items-center gap-1">
+                    <StatusPill status={row.status} />
+                    {row.source === "package" && row.status !== "pending" && (
+                      <BotHistoryDialog
+                        accountCode={row.account_code}
+                        planLabel={label}
+                        returns={returns}
+                      />
+                    )}
+                  </div>
                   {returns.length > 0 && (
                     <p
                       className={cn(

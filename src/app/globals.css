@@ -17,7 +17,9 @@
 
     --background: 210 16% 96%;
     --foreground: 220 18% 12%;
-    --card: 0 0% 100%;
+    /* Soft warm grey-yellow so cards contrast against white chrome */
+    --card-soft: 40 28% 96%;
+    --card: 40 28% 96%;
     --card-foreground: 220 18% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 18% 12%;
@@ -42,13 +44,29 @@
     --chart-5: 220 10% 42%;
   }
 
+  /* Digits and numeric punctuation always use Feature Display Bold. */
+  @font-face {
+    font-family: FeatureDisplayNumerals;
+    src: url("/fonts/FeatureDisplay-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+    unicode-range:
+      U+0024, U+0025, U+002B, U+002C, U+002D, U+002E, U+0030-0039, U+003A,
+      U+2212;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
     @apply bg-canvas text-ink antialiased;
-    font-family: var(--font-inter), Inter, sans-serif;
+    font-family:
+      FeatureDisplayNumerals,
+      var(--font-inter),
+      Inter,
+      sans-serif;
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -20%, hsl(36 88% 48% / 0.08), transparent),
       linear-gradient(180deg, hsl(210 18% 97%) 0%, hsl(210 14% 94%) 100%);
@@ -56,7 +74,11 @@
   }
 
   .font-display {
-    font-family: var(--font-feature-display), var(--font-inter), sans-serif;
+    font-family:
+      var(--font-feature-display),
+      FeatureDisplayNumerals,
+      var(--font-inter),
+      sans-serif;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
@@ -89,16 +111,46 @@
     box-shadow: 0 2px 14px rgba(18, 24, 38, 0.06);
   }
 
+  .shadow-card-hover {
+    box-shadow: 0 8px 24px rgba(18, 24, 38, 0.1);
+  }
+
+  .card-hover {
+    box-shadow: 0 2px 14px rgba(18, 24, 38, 0.06);
+    transition: box-shadow 150ms ease-out;
+  }
+
+  .card-hover:hover {
+    box-shadow: 0 8px 24px rgba(18, 24, 38, 0.1);
+  }
+
   .surface-float {
-    @apply rounded-2xl border border-border/60 bg-white/85 shadow-float backdrop-blur-md;
+    @apply rounded-2xl border border-border bg-white;
   }
 
   input[type="range"] {
     accent-color: hsl(var(--orange));
   }
+
+  input,
+  textarea,
+  select {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
   .text-balance {
     text-wrap: balance;
   }

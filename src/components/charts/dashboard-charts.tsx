@@ -17,7 +17,8 @@ const LABEL = "hsl(340 8% 42%)";
 function baseChart(dark = false): ApexOptions {
   return {
     chart: {
-      fontFamily: "Inter, sans-serif",
+      fontFamily:
+        "var(--font-feature-display), FeatureDisplayNumerals, var(--font-inter), Inter, sans-serif",
       toolbar: { show: false },
       zoom: { enabled: false },
       animations: { enabled: true, speed: 550, easing: "easeinout" },

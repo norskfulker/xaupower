@@ -10,9 +10,15 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "Inter", "sans-serif"],
+        sans: [
+          "FeatureDisplayNumerals",
+          "var(--font-inter)",
+          "Inter",
+          "sans-serif",
+        ],
         display: [
           "var(--font-feature-display)",
+          "FeatureDisplayNumerals",
           "var(--font-inter)",
           "sans-serif",
         ],
@@ -69,6 +75,7 @@ const config: Config = {
       boxShadow: {
         float: "0 12px 40px rgba(18, 24, 38, 0.1)",
         card: "0 2px 14px rgba(18, 24, 38, 0.06)",
+        "card-hover": "0 8px 24px rgba(18, 24, 38, 0.1)",
       },
     },
   },

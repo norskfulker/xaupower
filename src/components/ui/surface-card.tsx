@@ -12,7 +12,7 @@ export function SurfaceCard({
   return (
     <div
       className={cn(
-        "rounded-2xl bg-card text-ink shadow-card",
+        "card-hover rounded-2xl bg-card text-ink",
         padding === "sm" && "p-5",
         padding === "default" && "p-6",
         padding === "lg" && "p-8",

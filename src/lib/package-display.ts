@@ -32,7 +32,16 @@ export function planSpecLines(
   if (variant && Number.isFinite(Number(variant.max_drawdown_pct))) {
     lines.push(`${variant.max_drawdown_pct}% drawdown`);
   }
-  if (pkg.max_loss_pct != null && Number(pkg.max_loss_pct) > 0) {
+  if (
+    pkg.daily_return_min_pct != null &&
+    pkg.daily_return_max_pct != null
+  ) {
+    const min = Number(pkg.daily_return_min_pct);
+    const max = Number(pkg.daily_return_max_pct);
+    const minLabel = min > 0 ? `+${min}` : `${min}`;
+    const maxLabel = max > 0 ? `+${max}` : `${max}`;
+    lines.push(`Daily P&L ${minLabel}% to ${maxLabel}%`);
+  } else if (pkg.max_loss_pct != null && Number(pkg.max_loss_pct) > 0) {
     lines.push(`Max loss ${pkg.max_loss_pct}%`);
   }
   return lines;

@@ -19,7 +19,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "relative flex h-full min-h-[11rem] flex-col rounded-2xl bg-card p-6 shadow-card sm:min-h-[12.5rem] sm:p-7",
+        "card-hover relative flex h-full min-h-[11rem] flex-col rounded-2xl bg-card p-6 sm:min-h-[12.5rem] sm:p-7",
         className
       )}
     >
@@ -31,10 +31,16 @@ export function StatCard({
       <p className="text-kicker">{label}</p>
       <p
         className={cn(
-          "text-metric mt-4 break-words text-orange",
+          "font-display mt-4 break-words text-4xl leading-none tracking-tight text-orange sm:text-5xl",
           Icon && "pr-10",
           valueClassName
         )}
+        style={{
+          fontFamily:
+            "var(--font-feature-display), FeatureDisplayNumerals, var(--font-inter), sans-serif",
+          fontWeight: 700,
+          fontVariantNumeric: "tabular-nums",
+        }}
       >
         {value}
       </p>

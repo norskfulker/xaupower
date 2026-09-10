@@ -26,9 +26,6 @@ export function DashboardHowItWorks() {
   return (
     <SurfaceCard>
       <p className="text-kicker">How it works</p>
-      <p className="mt-1 text-sm text-muted-label">
-        Pick a bot before adding funds or cashing out.
-      </p>
       <div className="mt-5 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
         {STEPS.map(({ n, title, body, icon: Icon }, i) => (
           <div key={n} className="flex flex-1 flex-col items-stretch sm:flex-row sm:items-center">
@@ -39,7 +36,7 @@ export function DashboardHowItWorks() {
                   <Icon className="size-4" />
                 </span>
               </div>
-              <h3 className="mt-3 text-base font-bold leading-snug text-ink">
+              <h3 className="mt-3 text-base font-semibold leading-snug text-ink">
                 {title}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-label">

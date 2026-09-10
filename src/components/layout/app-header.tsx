@@ -209,14 +209,16 @@ export function AppHeader({
         isAdmin={isAdmin}
       />
 
-      <main
-        className={cn(
-          "mx-auto min-w-0 space-y-8 px-4 pb-28 pt-28 md:pb-10 md:pt-32",
-          isAdminRoute ? "max-w-7xl sm:px-6 lg:px-8" : "max-w-4xl"
-        )}
-      >
-        {children}
-      </main>
+      <div className="md:pl-[15.5rem]">
+        <main
+          className={cn(
+            "mx-auto min-w-0 space-y-8 px-4 pb-28 pt-28 md:pb-10 md:pt-28",
+            isAdminRoute ? "max-w-7xl sm:px-6 lg:px-8" : "max-w-3xl"
+          )}
+        >
+          {children}
+        </main>
+      </div>
 
       {userId && (
         <ProfileDialog

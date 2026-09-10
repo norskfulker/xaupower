@@ -40,7 +40,8 @@ const tooltip = {
     border: "1px solid hsl(340 10% 86%)",
     borderRadius: 12,
     color: "hsl(350 40% 12%)",
-    fontFamily: "Inter, sans-serif",
+    fontFamily:
+      "var(--font-feature-display), FeatureDisplayNumerals, var(--font-inter), Inter, sans-serif",
     fontVariantNumeric: "tabular-nums" as const,
   },
   labelStyle: { color: "hsl(340 8% 45%)" },

@@ -35,7 +35,7 @@ import {
   Lock,
   Wallet,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 export type CashierTab = "balance" | "withdraw";
 
@@ -166,7 +166,7 @@ export function CashierWorkspace({
 
   return (
     <TooltipProvider>
-      <div className={cn("space-y-6", compact && "space-y-4")}>
+      <div className={cn("space-y-6", compact && "space-y-3")}>
         {!compact && (
           <div>
             <h1 className="mt-1 font-display text-2xl tracking-tight text-ink sm:text-3xl">
@@ -179,7 +179,12 @@ export function CashierWorkspace({
         )}
 
         {loading && (
-          <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-label">
+          <div
+            className={cn(
+              "flex items-center justify-center gap-2 text-sm text-muted-label",
+              compact ? "py-10" : "py-16"
+            )}
+          >
             <Loader2 className="size-4 animate-spin" />
             Loading cashier…
           </div>
@@ -201,7 +206,7 @@ export function CashierWorkspace({
 
         {!loading && !error && data && stats && (
           <>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className={cn("grid gap-3", compact ? "grid-cols-2" : "sm:grid-cols-2")}>
               <StatChip
                 label="Available"
                 value={formatUsd(stats.totalAvailable)}
@@ -211,6 +216,7 @@ export function CashierWorkspace({
                     : "Selected bot"
                 }
                 icon={Wallet}
+                compact={compact}
               />
               <StatChip
                 label="Active bots"
@@ -221,6 +227,7 @@ export function CashierWorkspace({
                     : "Separate IDs & balances"
                 }
                 icon={Bot}
+                compact={compact}
               />
             </div>
 
@@ -229,6 +236,7 @@ export function CashierWorkspace({
                 bots={data.botAccounts}
                 selectedId={selectedBotId}
                 onSelect={setSelectedBotId}
+                compact={compact}
               />
             )}
 
@@ -239,7 +247,7 @@ export function CashierWorkspace({
                 if (value === "withdraw" && withdrawLocked) return;
                 setTab(value as CashierTab);
               }}
-              className="w-full"
+              className="w-full min-w-0"
             >
               <TabsList className="grid h-auto w-full grid-cols-2">
                 <TabsTrigger value="balance" className="gap-1.5">
@@ -267,16 +275,17 @@ export function CashierWorkspace({
                 )}
               </TabsList>
 
-              <TabsContent value="balance" className="mt-5">
-                <SurfaceCard padding="lg" className="min-w-0">
+              <TabsContent value="balance" className={cn(compact ? "mt-3" : "mt-5")}>
+                <CashierPanel compact={compact}>
                   <TabHeading
                     title="Add funds"
                     body="Top up the selected bot."
+                    compact={compact}
                   />
                   {data.botAccounts.length === 0 ? (
                     <EmptyBots />
                   ) : (
-                    <div className="mt-5">
+                    <div className={cn(compact ? "mt-3" : "mt-5")}>
                       <PaymentFlow
                         key={`balance-${selectedBotId}`}
                         kind="balance"
@@ -292,19 +301,20 @@ export function CashierWorkspace({
                       />
                     </div>
                   )}
-                </SurfaceCard>
+                </CashierPanel>
               </TabsContent>
 
-              <TabsContent value="withdraw" className="mt-5">
-                <SurfaceCard padding="lg" className="min-w-0">
+              <TabsContent value="withdraw" className={cn(compact ? "mt-3" : "mt-5")}>
+                <CashierPanel compact={compact}>
                   <TabHeading
                     title="Cash out"
                     body="Request a payout from the selected bot."
+                    compact={compact}
                   />
                   {data.botAccounts.length === 0 ? (
                     <EmptyBots />
                   ) : (
-                    <div className="mt-5">
+                    <div className={cn(compact ? "mt-3" : "mt-5")}>
                       <PayoutFlow
                         key={`withdraw-${selectedBotId}`}
                         embedded
@@ -317,7 +327,7 @@ export function CashierWorkspace({
                       />
                     </div>
                   )}
-                </SurfaceCard>
+                </CashierPanel>
               </TabsContent>
             </Tabs>
           </>
@@ -327,9 +337,30 @@ export function CashierWorkspace({
   );
 }
 
+function CashierPanel({
+  compact,
+  children,
+}: {
+  compact: boolean;
+  children: ReactNode;
+}) {
+  if (compact) {
+    return (
+      <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-canvas p-3.5 sm:p-4">
+        {children}
+      </div>
+    );
+  }
+  return (
+    <SurfaceCard padding="lg" className="min-w-0">
+      {children}
+    </SurfaceCard>
+  );
+}
+
 function EmptyBots() {
   return (
-    <div className="mt-6 rounded-2xl bg-canvas p-8 text-center">
+    <div className="mt-4 rounded-2xl bg-card p-6 text-center sm:mt-6 sm:p-8">
       <Bot className="mx-auto size-10 text-orange" />
       <h2 className="mt-4 font-display text-lg text-ink">No bot accounts yet</h2>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-label">
@@ -355,31 +386,66 @@ function StatChip({
   value,
   hint,
   icon: Icon,
+  compact = false,
 }: {
   label: string;
   value: string;
   hint: string;
   icon: typeof Wallet;
+  compact?: boolean;
 }) {
   return (
-    <div className="rounded-2xl bg-card p-4 shadow-card sm:p-5">
+    <div
+      className={cn(
+        "min-w-0 rounded-2xl",
+        compact ? "border border-border bg-canvas p-3" : "bg-card p-4 shadow-card sm:p-5"
+      )}
+    >
       <div className="flex items-start justify-between gap-2">
         <p className="text-kicker">{label}</p>
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-orange/10 text-orange">
-          <Icon className="size-4" />
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-orange/10 text-orange sm:size-8 sm:rounded-xl">
+          <Icon className="size-3.5 sm:size-4" />
         </span>
       </div>
-      <p className="text-metric mt-2 text-ink">{value}</p>
-      <p className="mt-1 text-xs text-muted-label">{hint}</p>
+      <p
+        className={cn(
+          "font-display mt-2 leading-none tracking-tight text-ink",
+          compact ? "text-xl sm:text-2xl" : "text-3xl sm:text-4xl"
+        )}
+        style={{
+          fontFamily:
+            "var(--font-feature-display), FeatureDisplayNumerals, var(--font-inter), sans-serif",
+          fontWeight: 700,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {value}
+      </p>
+      {!compact && <p className="mt-1 text-xs text-muted-label">{hint}</p>}
     </div>
   );
 }
 
-function TabHeading({ title, body }: { title: string; body: string }) {
+function TabHeading({
+  title,
+  body,
+  compact = false,
+}: {
+  title: string;
+  body: string;
+  compact?: boolean;
+}) {
   return (
     <div>
-      <h2 className="font-display text-xl text-ink">{title}</h2>
-      <p className="mt-1 text-sm text-muted-label">{body}</p>
+      <h2
+        className={cn(
+          "font-display text-ink",
+          compact ? "text-lg" : "text-xl"
+        )}
+      >
+        {title}
+      </h2>
+      {!compact && <p className="mt-1 text-sm text-muted-label">{body}</p>}
     </div>
   );
 }
@@ -388,27 +454,36 @@ function BotPicker({
   bots,
   selectedId,
   onSelect,
+  compact = false,
 }: {
   bots: UserPackage[];
   selectedId: string;
   onSelect: (id: string) => void;
+  compact?: boolean;
 }) {
   if (bots.length <= 1) {
     const bot = bots[0];
     if (!bot) return null;
     const terms = resolveUserPackageTerms(bot);
     return (
-      <div className="rounded-2xl bg-card px-5 py-4 shadow-card sm:px-6">
+      <div
+        className={cn(
+          "min-w-0 rounded-2xl",
+          compact
+            ? "border border-border bg-canvas px-3.5 py-3"
+            : "bg-card px-5 py-4 shadow-card sm:px-6"
+        )}
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="font-display text-base text-orange">
+          <div className="min-w-0">
+            <p className="font-display truncate text-base text-orange">
               {bot.account_code}
             </p>
-            <p className="text-sm text-muted-label">
+            <p className="truncate text-sm text-muted-label">
               {packageDisplayLabel(terms) ?? "Active bot"}
             </p>
           </div>
-          <p className="font-display text-lg tabular text-ink">
+          <p className="font-display shrink-0 text-lg tabular text-ink">
             {formatUsd(bot.available_usd ?? 0)}
             <span className="ml-1 text-xs font-medium text-muted-label">
               avail.
@@ -420,11 +495,16 @@ function BotPicker({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       <p className="text-sm font-semibold text-ink">
         Choose bot ({bots.length} active)
       </p>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        className={cn(
+          "grid gap-3",
+          compact ? "grid-cols-1 sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"
+        )}
+      >
         {bots.map((bot) => {
           const active = bot.id === selectedId;
           const terms = resolveUserPackageTerms(bot);
@@ -434,13 +514,15 @@ function BotPicker({
               type="button"
               onClick={() => onSelect(bot.id)}
               className={cn(
-                "flex flex-col rounded-2xl border px-4 py-3 text-left transition",
+                "flex min-w-0 flex-col rounded-2xl border px-4 py-3 text-left transition",
                 active
                   ? "border-orange bg-orange/10 ring-2 ring-orange shadow-sm"
-                  : "border-border bg-card shadow-card hover:border-orange/40"
+                  : compact
+                    ? "border-border bg-canvas hover:border-orange/40"
+                    : "border-border bg-card shadow-card hover:border-orange/40"
               )}
             >
-              <span className="font-display text-sm text-orange">
+              <span className="font-display truncate text-sm text-orange">
                 {bot.account_code}
               </span>
               <span className="mt-0.5 truncate text-xs text-muted-label">

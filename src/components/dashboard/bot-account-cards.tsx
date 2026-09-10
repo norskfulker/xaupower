@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { toast } from "sonner";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { StatusPill } from "@/components/ui/status-pill";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
+import { BotHistoryDialog } from "@/components/dashboard/bot-history-dialog";
 import {
   accessElapsedPct,
   daysRemaining,
@@ -15,7 +17,12 @@ import {
   packageDisplayLabel,
   resolveUserPackageTerms,
 } from "@/lib/package-terms";
-import type { Payment, UserPackage, VariantSnapshot } from "@/lib/types";
+import type {
+  LedgerTransaction,
+  Payment,
+  UserPackage,
+  VariantSnapshot,
+} from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Copy } from "lucide-react";
@@ -44,10 +51,29 @@ function termsFromPayment(payment: Payment): VariantSnapshot | null {
 export function BotAccountCards({
   bots,
   pendingPurchases = [],
+  profitReturns = [],
 }: {
   bots: UserPackage[];
   pendingPurchases?: Payment[];
+  profitReturns?: LedgerTransaction[];
 }) {
+  const profitsByBot = useMemo(() => {
+    const map = new Map<string, LedgerTransaction[]>();
+    for (const tx of profitReturns) {
+      if (tx.type !== "bot_return" || !tx.reference_id) continue;
+      const list = map.get(tx.reference_id) ?? [];
+      list.push(tx);
+      map.set(tx.reference_id, list);
+    }
+    for (const [, list] of Array.from(map.entries())) {
+      list.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    }
+    return map;
+  }, [profitReturns]);
+
   const pendingCards: BotCardModel[] = pendingPurchases
     .filter((p) => p.kind === "package")
     .filter((p) =>
@@ -59,7 +85,8 @@ export function BotAccountCards({
         key: `pending-${p.id}`,
         status: "pending" as const,
         accountCode: null,
-        planLabel: packageDisplayLabel(terms) ?? terms?.package_name ?? "New bot",
+        planLabel:
+          packageDisplayLabel(terms) ?? terms?.package_name ?? "New bot",
         capital: Number(p.amount_usd ?? 0),
         available: Number(p.amount_usd ?? 0),
         pendingUsd: 0,
@@ -119,14 +146,24 @@ export function BotAccountCards({
         )}
       >
         {cards.map((card) => (
-          <BotCard key={card.key} card={card} />
+          <BotCard
+            key={card.key}
+            card={card}
+            returns={card.botId ? profitsByBot.get(card.botId) ?? [] : []}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function BotCard({ card }: { card: BotCardModel }) {
+function BotCard({
+  card,
+  returns,
+}: {
+  card: BotCardModel;
+  returns: LedgerTransaction[];
+}) {
   const daysLeft = daysRemaining(card.expiresAt);
   const elapsed = accessElapsedPct(card.purchasedAt, card.expiresAt);
 
@@ -167,7 +204,16 @@ function BotCard({ card }: { card: BotCardModel }) {
             {card.planLabel}
           </p>
         </div>
-        <StatusPill status={card.status} />
+        <div className="flex shrink-0 items-center gap-1">
+          <StatusPill status={card.status} />
+          {!card.isPendingPurchase && card.botId && (
+            <BotHistoryDialog
+              accountCode={card.accountCode}
+              planLabel={card.planLabel}
+              returns={returns}
+            />
+          )}
+        </div>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3">

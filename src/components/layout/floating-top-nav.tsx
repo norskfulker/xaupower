@@ -57,21 +57,21 @@ export const ADMIN_NAV: NavItem[] = [
   { href: "/admin/design", label: "Design", icon: Palette },
 ];
 
-function isActive(pathname: string, item: NavItem) {
+export function isNavActive(pathname: string, item: NavItem) {
   if (item.match) return item.match(pathname);
   if (item.href === "/dashboard") return pathname === "/dashboard";
-  if (item.href === "/admin") return pathname.startsWith("/admin");
+  if (item.href === "/admin") {
+    return pathname === "/admin" || pathname === "/admin/";
+  }
   return pathname.startsWith(item.href);
 }
 
-function NavPill({
+function SideNavLink({
   item,
   active,
-  compact,
 }: {
   item: NavItem;
   active: boolean;
-  compact?: boolean;
 }) {
   const Icon = item.icon;
   return (
@@ -79,15 +79,18 @@ function NavPill({
       href={item.href}
       prefetch={false}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition",
-        compact && "px-2.5 py-1.5 text-xs",
-        active
-          ? "bg-orange text-white shadow-sm"
-          : "text-ink/70 hover:bg-orange/10 hover:text-ink"
+        "relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
+        active ? "text-orange" : "text-ink/70"
       )}
     >
-      <Icon className={cn("shrink-0", compact ? "size-3.5" : "size-4")} />
-      <span className={compact ? "hidden xl:inline" : undefined}>{item.label}</span>
+      <Icon className="size-4 shrink-0" />
+      <span className="truncate">{item.label}</span>
+      {active ? (
+        <span
+          aria-hidden
+          className="absolute top-1/2 right-0 h-6 w-0.5 -translate-y-1/2 rounded-full bg-gold"
+        />
+      ) : null}
     </Link>
   );
 }
@@ -122,46 +125,53 @@ export function FloatingTopNav({
     pathname.startsWith("/dashboard/payment");
 
   return (
-    <header className="fixed inset-x-4 top-4 z-50 mx-auto hidden max-w-6xl md:block">
-      <div className="surface-float overflow-hidden">
-        <div className="flex items-center gap-3 px-4 py-2.5">
-          <Wordmark href={homeHref} className="shrink-0 text-ink" />
-          <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
-            {items.map((item) => (
-              <NavPill
-                key={item.href}
-                item={item}
-                active={isActive(pathname, item)}
-                compact={isAdminRoute}
-              />
-            ))}
-            {!isAdminRoute && (
-              <CashierNavItem active={cashierActive} pill />
-            )}
+    <>
+      <aside className="fixed bottom-4 left-4 top-4 z-50 hidden w-56 md:flex">
+        <div className="surface-float flex h-full w-full flex-col overflow-hidden">
+          <div className="shrink-0 border-b border-border/60 px-4 py-4">
+            <Wordmark href={homeHref} className="text-ink" />
+          </div>
+
+          <nav className="flex min-h-0 flex-1 flex-col overflow-hidden px-2 py-3">
+            <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto scrollbar-none">
+              {items.map((item) => (
+                <SideNavLink
+                  key={item.href}
+                  item={item}
+                  active={isNavActive(pathname, item)}
+                />
+              ))}
+              {!isAdminRoute && (
+                <CashierNavItem active={cashierActive} side />
+              )}
+            </div>
             {isAdminRoute && (
               <Link
                 href="/dashboard"
                 prefetch={false}
-                className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-ink/50 transition hover:bg-orange/10 hover:text-ink"
+                className="relative mt-2 flex w-full shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/50 transition-colors"
               >
-                <LayoutDashboard className="size-3.5" />
-                <span className="hidden xl:inline">Terminal</span>
+                <LayoutDashboard className="size-4 shrink-0" />
+                <span className="truncate">Terminal</span>
               </Link>
             )}
           </nav>
-          <div className="flex shrink-0 items-center gap-2">
-            {!isAdminRoute && <MarketStatusBadge />}
-            <TickerStrip tone="light" initialQuotes={initialQuotes} />
-            <ProfileMenu
-              fullName={fullName}
-              email={email}
-              memberLabel={memberLabel}
-              tone="light"
-            />
-          </div>
         </div>
-      </div>
-    </header>
+      </aside>
+
+      <header className="fixed right-4 top-4 z-50 hidden md:block md:left-[15.5rem]">
+        <div className="surface-float flex items-center justify-end gap-2 overflow-hidden px-3 py-2.5">
+          {!isAdminRoute && <MarketStatusBadge />}
+          <TickerStrip tone="light" initialQuotes={initialQuotes} />
+          <ProfileMenu
+            fullName={fullName}
+            email={email}
+            memberLabel={memberLabel}
+            tone="light"
+          />
+        </div>
+      </header>
+    </>
   );
 }
 
