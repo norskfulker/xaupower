@@ -9,10 +9,15 @@ import type { Payout, Signal, UserPackage } from "@/lib/types";
 export default async function AdminAnalyticsPage({
   searchParams,
 }: {
-  searchParams: { range?: string; from?: string; to?: string; grain?: string };
+  searchParams: Promise<{
+    range?: string;
+    from?: string;
+    to?: string;
+    grain?: string;
+  }>;
 }) {
-  const { range, grain, from, to } = resolveAnalyticsRange(searchParams);
-  const supabase = createClient();
+  const { range, grain, from, to } = resolveAnalyticsRange(await searchParams);
+  const supabase = await createClient();
 
   const [payments, payoutsRes, signalsRes, profilesRes, pkgsRes] =
     await Promise.all([

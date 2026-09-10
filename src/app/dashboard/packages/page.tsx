@@ -10,7 +10,7 @@ import type {
 } from "@/lib/types";
 
 export default async function PackagesPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const user = await getAuthUser();
 
   const [

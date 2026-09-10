@@ -3,7 +3,7 @@ import { PayoutReviewQueue } from "@/components/admin/payout-review-queue";
 import type { Payout } from "@/lib/types";
 
 export default async function AdminPayoutsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from("payouts")
     .select("*, profiles(email, full_name)")

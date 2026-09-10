@@ -129,7 +129,7 @@ export default async function HomePage() {
   const quotes = await getPriceQuotes();
   const xauQuote = quotes.find((q) => q.pair === "XAUUSD") ?? null;
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const [{ data: packagesData }, { data: variantsData }] = await Promise.all([
     supabase.from("packages").select("*").eq("is_active", true).order("price_usd"),
     supabase.from("package_variants").select("*"),

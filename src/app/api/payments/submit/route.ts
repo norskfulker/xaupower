@@ -7,7 +7,7 @@ import { SIGNAL_PRICE_USD, MAX_BALANCE_TOPUP_USD, type PaymentKind } from "@/lib
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();

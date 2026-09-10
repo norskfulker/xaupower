@@ -6,7 +6,7 @@ import {
 import type { AdminUserRow } from "@/components/admin/users-table";
 import type { createClient } from "@/lib/supabase/server";
 
-type Supabase = ReturnType<typeof createClient>;
+type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 export async function loadAdminUserRows(supabase: Supabase) {
   const [paymentsRes, profilesRes, userPkgsRes, walletsRes] = await Promise.all([

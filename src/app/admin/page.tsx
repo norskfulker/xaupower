@@ -6,7 +6,7 @@ import { loadAdminPayments, loadAdminUserRows } from "@/lib/admin-loaders";
 import { format, subWeeks } from "date-fns";
 
 export default async function AdminPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const [payments, userRows, payoutsRes] = await Promise.all([
     loadAdminPayments(supabase),
     loadAdminUserRows(supabase),

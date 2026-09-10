@@ -168,7 +168,7 @@ export function AccessHistoryCards({
                     <StatusPill status={row.status} />
                     {row.source === "package" && row.status !== "pending" && (
                       <BotHistoryDialog
-                        accountCode={row.account_code}
+                        accountCode={row.account_code ?? null}
                         planLabel={label}
                         returns={returns}
                       />

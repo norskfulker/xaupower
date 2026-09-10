@@ -3,14 +3,15 @@ import { Wordmark } from "@/components/brand/wordmark";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { Suspense } from "react";
 
-export default function AuthMfaPage({
+export default async function AuthMfaPage({
   searchParams,
 }: {
-  searchParams: { next?: string };
+  searchParams: Promise<{ next?: string }>;
 }) {
+  const params = await searchParams;
   const next =
-    searchParams.next && searchParams.next.startsWith("/")
-      ? searchParams.next
+    params.next && params.next.startsWith("/")
+      ? params.next
       : "/dashboard";
 
   return (

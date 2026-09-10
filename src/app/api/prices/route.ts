@@ -4,7 +4,7 @@ import type { PriceQuote } from "@/lib/prices";
 
 /** Reads the server-side cache only. Does not call goldprice.dev. */
 export async function GET() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("price_cache")
     .select("pair, price, change_pct, fetched_at")

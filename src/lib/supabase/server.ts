@@ -4,8 +4,8 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { isMfaChallengePending } from "@/lib/supabase/mfa";
 
-export function createClient() {
-  const cookieStore = cookies();
+export async function createClient() {
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,7 +31,7 @@ export function createClient() {
 }
 
 export const getAuthUser = cache(async () => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -39,7 +39,7 @@ export const getAuthUser = cache(async () => {
 });
 
 export const getOwnProfile = cache(async (userId: string) => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
     .select("id, email, full_name, role, phone, notification_preferences, referral_code, referred_by, created_at")
@@ -49,7 +49,7 @@ export const getOwnProfile = cache(async (userId: string) => {
 });
 
 export const getPriceQuotes = cache(async () => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from("price_cache")
     .select("pair, price, change_pct, fetched_at")
@@ -58,7 +58,7 @@ export const getPriceQuotes = cache(async () => {
 });
 
 export async function redirectIfMfaPending(nextPath: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const pending = await isMfaChallengePending(supabase);
   if (pending) {
     redirect(`/auth/mfa?next=${encodeURIComponent(nextPath)}`);

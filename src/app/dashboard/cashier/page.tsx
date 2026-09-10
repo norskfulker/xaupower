@@ -4,17 +4,15 @@ export const metadata = {
   title: "Cashier — XAUPower",
 };
 
-export default function CashierPage({
+export default async function CashierPage({
   searchParams,
 }: {
-  searchParams: { tab?: string; bot?: string };
+  searchParams: Promise<{ tab?: string; bot?: string }>;
 }) {
-  const tab = searchParams.tab === "withdraw" ? "withdraw" : "balance";
+  const params = await searchParams;
+  const tab = params.tab === "withdraw" ? "withdraw" : "balance";
 
   return (
-    <CashierWorkspace
-      initialTab={tab}
-      initialBotId={searchParams.bot}
-    />
+    <CashierWorkspace initialTab={tab} initialBotId={params.bot} />
   );
 }

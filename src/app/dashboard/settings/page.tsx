@@ -17,7 +17,7 @@ export default async function SettingsPage() {
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const [profile, savedRes] = await Promise.all([
     getOwnProfile(user.id),
     supabase

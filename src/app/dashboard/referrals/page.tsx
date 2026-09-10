@@ -10,7 +10,7 @@ export default async function ReferralsPage() {
   const user = await getAuthUser();
   if (!user) redirect("/login");
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const profile = await getOwnProfile(user.id);
   if (!profile) redirect("/login");
 

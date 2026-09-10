@@ -40,7 +40,7 @@ export default async function DashboardLayout({
   if (!user) redirect("/login");
   await redirectIfMfaPending("/dashboard");
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const [profile, pkgRes, quotes] = await Promise.all([
     getOwnProfile(user.id),
     supabase

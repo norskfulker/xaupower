@@ -3,7 +3,7 @@ import { PackagesEditor } from "@/components/admin/packages-editor";
 import type { Package, PackageVariant } from "@/lib/types";
 
 export default async function AdminPackagesPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const [{ data: variants }, { data: active }] = await Promise.all([
     supabase
       .from("package_variants")

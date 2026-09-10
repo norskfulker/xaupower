@@ -3,7 +3,7 @@ import { SignalManager } from "@/components/admin/signal-manager";
 import type { Signal } from "@/lib/types";
 
 export default async function AdminSignalsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from("signals")
     .select("*")

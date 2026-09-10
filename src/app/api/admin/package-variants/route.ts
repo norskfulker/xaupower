@@ -4,7 +4,7 @@ import type { RiskTier, RoadmapStep } from "@/lib/types";
 
 export async function PATCH(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();

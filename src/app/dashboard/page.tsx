@@ -13,7 +13,7 @@ import {
 import { Banknote, Boxes } from "lucide-react";
 
 export default async function DashboardPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const user = await getAuthUser();
 
   const [activeRes, historyRes, pendingRes, walletRes, profitsRes] =

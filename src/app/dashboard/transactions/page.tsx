@@ -8,7 +8,7 @@ import { daysRemaining } from "@/lib/format";
 import type { LedgerTransaction, UserPackage } from "@/lib/types";
 
 export default async function TransactionsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const user = await getAuthUser();
 
   const [{ data }, pkgRes] = await Promise.all([

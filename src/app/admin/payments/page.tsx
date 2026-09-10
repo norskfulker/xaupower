@@ -4,7 +4,7 @@ import { PaymentsTable } from "@/components/admin/payments-table";
 import { loadAdminPayments } from "@/lib/admin-loaders";
 
 export default async function AdminPaymentsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const payments = await loadAdminPayments(supabase);
   const pending = payments.filter((p) => p.status === "pending_review");
 

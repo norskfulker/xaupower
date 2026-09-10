@@ -3,7 +3,7 @@ import { WalletSettingsForm } from "@/components/admin/wallet-settings-form";
 import type { DepositAddress } from "@/lib/types";
 
 export default async function AdminWalletSettingsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from("deposit_addresses")
     .select("*")
