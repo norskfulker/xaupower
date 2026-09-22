@@ -103,7 +103,7 @@ function ProfileDialog({
     >
       <DialogContent
         showCloseButton={!required}
-        className="max-w-md border-border bg-white text-ink"
+        className="max-w-md border-border bg-popover text-ink"
       >
         <DialogHeader>
           <DialogTitle>

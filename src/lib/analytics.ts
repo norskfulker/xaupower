@@ -9,8 +9,7 @@ import {
   startOfWeek,
   subDays,
 } from "date-fns";
-import { paymentPackageLabel } from "@/lib/package-terms";
-import type { Payment, Payout, Signal, UserPackage } from "@/lib/types";
+import type { Account, Payment, Payout, Signal } from "@/lib/types";
 
 export type RangeKey = "7" | "30" | "90" | "custom";
 export type Grain = "daily" | "weekly" | "monthly";
@@ -85,7 +84,7 @@ export function buildAnalytics(input: {
   payouts: Payout[];
   signals: Signal[];
   profiles: { id: string; created_at: string }[];
-  packages: Pick<UserPackage, "user_id" | "purchased_at" | "expires_at">[];
+  accounts: Pick<Account, "user_id" | "purchased_at" | "expires_at" | "status">[];
   from: Date;
   to: Date;
   grain: Grain;
@@ -104,14 +103,14 @@ export function buildAnalytics(input: {
       .reduce((sum, p) => sum + Number(p.amount_usd), 0),
   }));
 
-  const byVariant = new Map<string, number>();
+  const byTier = new Map<string, number>();
   for (const p of input.payments) {
     if (p.status !== "confirmed" || !inRange(p.confirmed_at, from, to)) continue;
-    if ((p.kind ?? "package") !== "package") continue;
-    const label = paymentPackageLabel(p) ?? "Unknown variant";
-    byVariant.set(label, (byVariant.get(label) ?? 0) + Number(p.amount_usd));
+    if (p.kind !== "deposit") continue;
+    const tier = "deposits";
+    byTier.set(tier, (byTier.get(tier) ?? 0) + Number(p.amount_usd));
   }
-  const revenueByVariant = Array.from(byVariant.entries())
+  const revenueByVariant = Array.from(byTier.entries())
     .map(([name, revenue]) => ({ name, revenue }))
     .sort((a, b) => b.revenue - a.revenue);
 
@@ -119,7 +118,7 @@ export function buildAnalytics(input: {
     "pending_review",
     "confirmed",
     "rejected",
-    "expired",
+    "cancelled",
   ] as const;
   const depositFunnel = depositStatuses.map((status) => ({
     status: status.replace("_", " "),
@@ -130,6 +129,7 @@ export function buildAnalytics(input: {
 
   const payoutStatuses = [
     "requested",
+    "pending_review",
     "processing",
     "sent",
     "rejected",
@@ -173,17 +173,18 @@ export function buildAnalytics(input: {
       inRange(p.created_at, slot.start, slot.end)
     ).length,
     activeHolders: new Set(
-      input.packages
-        .filter((pkg) => {
-          const bought = pkg.purchased_at
-            ? new Date(pkg.purchased_at).getTime()
+      input.accounts
+        .filter((acct) => {
+          if (acct.status !== "active") return false;
+          const bought = acct.purchased_at
+            ? new Date(acct.purchased_at).getTime()
             : 0;
-          const expires = pkg.expires_at
-            ? new Date(pkg.expires_at).getTime()
+          const expires = acct.expires_at
+            ? new Date(acct.expires_at).getTime()
             : Number.POSITIVE_INFINITY;
           return bought <= slot.end.getTime() && expires > slot.end.getTime();
         })
-        .map((pkg) => pkg.user_id)
+        .map((acct) => acct.user_id)
     ).size,
   }));
 

@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     }
 
     const { data: payout, error: approveError } = await supabase.rpc(
-      "approve_payout_start",
+      "approve_payout",
       { p_payout_id: body.payoutId }
     );
 
@@ -65,10 +65,10 @@ export async function POST(request: Request) {
       );
 
       if (npId) {
-        await supabase.rpc("attach_nowpayments_payout_id", {
-          p_payout_id: payout.id,
-          p_nowpayments_payout_id: npId,
-        });
+        await supabase
+          .from("payouts")
+          .update({ nowpayments_payout_id: npId })
+          .eq("id", payout.id);
       }
 
       return NextResponse.json({
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       });
     } catch (npErr) {
       console.error("NOWPayments payout create failed", npErr);
-      await supabase.rpc("mark_payout_provider_failed", {
+      await supabase.rpc("fail_payout", {
         p_payout_id: payout.id,
         p_note: "Payout provider failed to start — balance restored",
       });

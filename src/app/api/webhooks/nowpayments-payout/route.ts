@@ -56,12 +56,12 @@ export async function POST(request: Request) {
       status === "rejected";
 
     if (finished) {
-      await admin.rpc("complete_payout_sent", {
+      await admin.rpc("complete_payout", {
         p_payout_id: payout.id,
         p_tx_hash: txHash,
       });
     } else if (failed) {
-      await admin.rpc("fail_payout_and_restore", {
+      await admin.rpc("fail_payout", {
         p_payout_id: payout.id,
         p_note: "Payout failed at provider — balance restored",
       });

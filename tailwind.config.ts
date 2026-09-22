@@ -73,9 +73,9 @@ const config: Config = {
         "3xl": "calc(var(--radius) + 8px)",
       },
       boxShadow: {
-        float: "0 12px 40px rgba(18, 24, 38, 0.1)",
-        card: "0 2px 14px rgba(18, 24, 38, 0.06)",
-        "card-hover": "0 8px 24px rgba(18, 24, 38, 0.1)",
+        float: "0 12px 40px rgba(56, 42, 18, 0.12)",
+        card: "0 2px 14px rgba(56, 42, 18, 0.06)",
+        "card-hover": "0 8px 24px rgba(56, 42, 18, 0.1)",
       },
     },
   },

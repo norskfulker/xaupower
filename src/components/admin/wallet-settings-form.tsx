@@ -85,7 +85,6 @@ export function WalletSettingsForm({
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-kicker">Admin</p>
         <h1 className="text-display mt-1 text-3xl sm:text-4xl">Deposit wallets</h1>
       </div>
 

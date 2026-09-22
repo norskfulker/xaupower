@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       amountUsd?: number;
       currency?: string;
       destinationAddress?: string;
-      userPackageId?: string;
+      accountId?: string;
     };
 
     const amount = Number(body.amountUsd);
@@ -31,8 +31,8 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!body.userPackageId) {
-      return NextResponse.json({ error: "Bot account required" }, { status: 400 });
+    if (!body.accountId) {
+      return NextResponse.json({ error: "Account id required" }, { status: 400 });
     }
 
     if (!body.currency || !isPaymentRail(body.currency)) {
@@ -47,29 +47,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: addressError }, { status: 400 });
     }
 
-    const { data: botAccount } = await supabase
-      .from("user_packages")
-      .select("available_usd")
-      .eq("id", body.userPackageId)
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .maybeSingle();
-
-    const available = Number(botAccount?.available_usd ?? 0);
-    if (amount > available) {
-      return NextResponse.json(
-        {
-          error: `Amount exceeds available balance of $${available.toFixed(2)}`,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { data: payoutId, error } = await supabase.rpc("request_payout", {
+    const { data: payoutId, error } = await supabase.rpc("request_withdrawal", {
+      p_account_id: body.accountId,
       p_amount_usd: amount,
       p_currency: body.currency,
       p_destination_address: body.destinationAddress!.trim(),
-      p_user_package_id: body.userPackageId,
     });
 
     if (error) {

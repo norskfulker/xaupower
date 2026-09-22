@@ -4,7 +4,7 @@ import { AnalyticsCharts } from "@/components/admin/analytics-charts";
 import { buildAnalytics, resolveAnalyticsRange } from "@/lib/analytics";
 import { loadAdminPayments } from "@/lib/admin-loaders";
 import { format } from "date-fns";
-import type { Payout, Signal, UserPackage } from "@/lib/types";
+import type { Account, Payout, Signal } from "@/lib/types";
 
 export default async function AdminAnalyticsPage({
   searchParams,
@@ -19,15 +19,15 @@ export default async function AdminAnalyticsPage({
   const { range, grain, from, to } = resolveAnalyticsRange(await searchParams);
   const supabase = await createClient();
 
-  const [payments, payoutsRes, signalsRes, profilesRes, pkgsRes] =
+  const [payments, payoutsRes, signalsRes, profilesRes, accountsRes] =
     await Promise.all([
       loadAdminPayments(supabase),
       supabase.from("payouts").select("*"),
       supabase.from("signals").select("*"),
       supabase.from("profiles").select("id, created_at"),
       supabase
-        .from("user_packages")
-        .select("user_id, purchased_at, expires_at"),
+        .from("accounts")
+        .select("user_id, status, purchased_at, expires_at"),
     ]);
 
   const data = buildAnalytics({
@@ -35,9 +35,9 @@ export default async function AdminAnalyticsPage({
     payouts: (payoutsRes.data ?? []) as Payout[],
     signals: (signalsRes.data ?? []) as Signal[],
     profiles: profilesRes.data ?? [],
-    packages: (pkgsRes.data ?? []) as Pick<
-      UserPackage,
-      "user_id" | "purchased_at" | "expires_at"
+    accounts: (accountsRes.data ?? []) as Pick<
+      Account,
+      "user_id" | "purchased_at" | "expires_at" | "status"
     >[],
     from,
     to,
@@ -48,7 +48,6 @@ export default async function AdminAnalyticsPage({
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-kicker">Admin</p>
           <h1 className="text-display mt-1 text-3xl sm:text-4xl">Analytics</h1>
         </div>
         <AnalyticsFilters

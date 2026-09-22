@@ -28,7 +28,7 @@ export function StatCard({
           <Icon className="size-4" />
         </span>
       )}
-      <p className="text-kicker">{label}</p>
+      <p className="text-sm font-semibold text-ink">{label}</p>
       <p
         className={cn(
           "font-display mt-4 break-words text-4xl leading-none tracking-tight text-orange sm:text-5xl",

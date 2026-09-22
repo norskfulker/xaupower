@@ -6,35 +6,39 @@
 
 @layer base {
   :root {
-    /* Graphite Vault — cool stone canvas, deep ink, brass accent */
+    /* Graphite Vault — single warm stone canvas, deep ink, brass accent.
+       Surfaces (canvas/background/card/popover) share a tuned cream tone
+       so adjacent surfaces don't produce a visible seam. Borders are
+       calibrated at --border to read on both canvas and card. */
     --ink: 220 18% 12%;
-    --canvas: 210 16% 96%;
+    --canvas: 40 22% 94%;
     --orange: 36 88% 48%;
     --gold: 40 72% 52%;
     --teal: 168 48% 34%;
     --hotpink: 358 72% 48%;
     --muted-label: 220 10% 42%;
 
-    --background: 210 16% 96%;
+    --background: 40 22% 94%;
     --foreground: 220 18% 12%;
-    /* Soft warm grey-yellow so cards contrast against white chrome */
+    /* Cards lift slightly off canvas with a warmer cream. */
     --card-soft: 40 28% 96%;
-    --card: 40 28% 96%;
+    --card: 40 28% 97%;
     --card-foreground: 220 18% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 18% 12%;
     --primary: 36 88% 48%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 14% 92%;
+    --secondary: 40 18% 90%;
     --secondary-foreground: 220 18% 12%;
-    --muted: 210 12% 90%;
+    --muted: 40 14% 88%;
     --muted-foreground: 220 10% 40%;
     --accent: 40 72% 52%;
     --accent-foreground: 220 18% 12%;
     --destructive: 358 72% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 14% 86%;
-    --input: 214 14% 86%;
+    /* Slightly warmer + a touch deeper so borders read on canvas AND card. */
+    --border: 36 14% 78%;
+    --input: 36 14% 78%;
     --ring: 36 88% 48%;
     --radius: 1rem;
     --chart-1: 36 88% 48%;
@@ -69,7 +73,7 @@
       sans-serif;
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -20%, hsl(36 88% 48% / 0.08), transparent),
-      linear-gradient(180deg, hsl(210 18% 97%) 0%, hsl(210 14% 94%) 100%);
+      linear-gradient(180deg, hsl(40 24% 96%) 0%, hsl(40 20% 92%) 100%);
     background-attachment: fixed;
   }
 
@@ -87,10 +91,6 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .text-kicker {
-    @apply text-[11px] font-bold uppercase tracking-widest text-muted-label;
-  }
-
   .text-display {
     @apply font-display text-4xl leading-[1.1] tracking-tight sm:text-5xl;
   }
@@ -104,28 +104,28 @@
   }
 
   .shadow-float {
-    box-shadow: 0 12px 40px rgba(18, 24, 38, 0.1);
+    box-shadow: 0 12px 40px rgba(56, 42, 18, 0.12);
   }
 
   .shadow-card {
-    box-shadow: 0 2px 14px rgba(18, 24, 38, 0.06);
+    box-shadow: 0 2px 14px rgba(56, 42, 18, 0.06);
   }
 
   .shadow-card-hover {
-    box-shadow: 0 8px 24px rgba(18, 24, 38, 0.1);
+    box-shadow: 0 8px 24px rgba(56, 42, 18, 0.1);
   }
 
   .card-hover {
-    box-shadow: 0 2px 14px rgba(18, 24, 38, 0.06);
+    box-shadow: 0 2px 14px rgba(56, 42, 18, 0.06);
     transition: box-shadow 150ms ease-out;
   }
 
   .card-hover:hover {
-    box-shadow: 0 8px 24px rgba(18, 24, 38, 0.1);
+    box-shadow: 0 8px 24px rgba(56, 42, 18, 0.1);
   }
 
   .surface-float {
-    @apply rounded-2xl border border-border bg-white;
+    @apply rounded-2xl border border-border bg-card;
   }
 
   input[type="range"] {

@@ -1,6 +1,5 @@
 "use client";
 
-import { CashierNavItem } from "@/components/dashboard/cashier-dialog";
 import { MarketStatusBadge } from "@/components/layout/market-status-badge";
 import { ProfileMenu } from "@/components/layout/profile-menu";
 import { TickerStrip } from "@/components/ticker/ticker-strip";
@@ -34,7 +33,7 @@ export type NavItem = {
 
 export const USER_NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/packages", label: "Buy Bot", icon: Boxes },
+  { href: "/dashboard/accounts", label: "Accounts", icon: Boxes, match: (p) => p === "/dashboard/accounts" },
   { href: "/dashboard/referrals", label: "Referrals", icon: Gift },
   {
     href: "/admin",
@@ -48,10 +47,11 @@ export const USER_NAV: NavItem[] = [
 export const ADMIN_NAV: NavItem[] = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/accounts", label: "Accounts", icon: Boxes },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
   { href: "/admin/payouts", label: "Payouts", icon: Banknote },
   { href: "/admin/signals", label: "Signals", icon: CandlestickChart },
-  { href: "/admin/packages", label: "Packages", icon: Boxes },
+  { href: "/admin/daily", label: "Daily returns", icon: BarChart3 },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/settings/wallets", label: "Wallets", icon: Wallet },
   { href: "/admin/design", label: "Design", icon: Palette },
@@ -118,12 +118,6 @@ export function FloatingTopNav({
     ? ADMIN_NAV
     : USER_NAV.filter((item) => !item.adminOnly || isAdmin);
 
-  const cashierActive =
-    pathname.startsWith("/dashboard/cashier") ||
-    pathname.startsWith("/dashboard/balance") ||
-    pathname.startsWith("/dashboard/payout") ||
-    pathname.startsWith("/dashboard/payment");
-
   return (
     <>
       <aside className="fixed bottom-4 left-4 top-4 z-50 hidden w-56 md:flex">
@@ -141,9 +135,6 @@ export function FloatingTopNav({
                   active={isNavActive(pathname, item)}
                 />
               ))}
-              {!isAdminRoute && (
-                <CashierNavItem active={cashierActive} side />
-              )}
             </div>
             {isAdminRoute && (
               <Link

@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "paymentId required" }, { status: 400 });
     }
 
-    const { error } = await supabase.rpc("approve_payment_and_activate", {
+    const { error } = await supabase.rpc("approve_payment", {
       p_payment_id: body.paymentId,
     });
 

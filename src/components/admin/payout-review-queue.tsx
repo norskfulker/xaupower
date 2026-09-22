@@ -123,8 +123,7 @@ export function PayoutReviewQueue({
     <section id="payouts" className="space-y-6">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-kicker">Queue</p>
-          <h2 className="mt-1 text-xl font-bold text-ink">
+          <h2 className="text-xl font-bold text-ink">
             Trading balance payout review
           </h2>
         </div>

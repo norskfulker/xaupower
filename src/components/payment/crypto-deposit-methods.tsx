@@ -1,13 +1,21 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useMemo, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { toast } from "sonner";
-import { Check, ChevronDown, Copy, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CopyButton } from "@/components/ui/copy-button";
 import { formatUsd } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { DepositAddress } from "@/lib/types";
 import { PLACEHOLDER_DEPOSIT_PREFIX } from "@/lib/types";
 import {
@@ -15,14 +23,34 @@ import {
   CHAIN_LABEL,
   RAIL_ASSET,
   RAIL_CHAIN,
-  RAIL_HINT,
-  RAIL_LABEL,
+  assetsFromRails,
+  chainsForAsset,
   formatRail,
   railNetwork,
   railsForNetworks,
+  toRail,
+  type AssetSymbol,
+  type ChainId,
   type PaymentRail,
 } from "@/lib/wallets";
-import { cn } from "@/lib/utils";
+
+const ASSET_LOGO: Record<AssetSymbol, string> = {
+  BTC: "₿",
+  ETH: "Ξ",
+  BNB: "Ⓑ",
+  TRX: "Ⓣ",
+  USDT: "₮",
+  USDC: "Ⓒ",
+};
+
+const ASSET_COLOR: Record<AssetSymbol, string> = {
+  BTC: "bg-orange/15 text-orange",
+  ETH: "bg-ink/10 text-ink",
+  BNB: "bg-gold/20 text-gold",
+  TRX: "bg-hotpink/15 text-hotpink",
+  USDT: "bg-teal/15 text-teal",
+  USDC: "bg-ink/10 text-ink",
+};
 
 export function CryptoDepositMethods({
   depositAddresses,
@@ -36,7 +64,7 @@ export function CryptoDepositMethods({
   error,
   loading,
   onSubmit,
-  submitLabel = "Submit for admin review",
+  submitLabel = "Submit",
 }: {
   depositAddresses: DepositAddress[];
   currency: PaymentRail;
@@ -51,223 +79,215 @@ export function CryptoDepositMethods({
   onSubmit: () => void;
   submitLabel?: string;
 }) {
-  const reduceMotion = useReducedMotion();
-  const availableRails = railsForNetworks(
-    depositAddresses.filter((d) => d.is_active).map((d) => d.currency)
+  const activeAddresses = useMemo(
+    () => depositAddresses.filter((d) => d.is_active),
+    [depositAddresses]
   );
-  const deposit = depositAddresses.find(
-    (d) => d.currency === railNetwork(currency) && d.is_active
+  const availableRails = useMemo(
+    () => railsForNetworks(activeAddresses.map((d) => d.currency)),
+    [activeAddresses]
+  );
+  const assets = useMemo(
+    () => assetsFromRails(availableRails),
+    [availableRails]
   );
 
-  function copyAddress() {
-    if (!deposit?.address) return;
-    void navigator.clipboard.writeText(deposit.address);
-    toast.message("Address copied");
+  // Default selections so the QR is shown immediately.
+  const currentAsset: AssetSymbol = RAIL_ASSET[currency];
+  const chainsForCurrentAsset = useMemo(
+    () => chainsForAsset(currentAsset, availableRails),
+    [currentAsset, availableRails]
+  );
+
+  const [selectedAsset, setSelectedAsset] = useState<AssetSymbol>(currentAsset);
+  const initialChain: ChainId =
+    chainsForCurrentAsset.includes(RAIL_CHAIN[currency])
+      ? RAIL_CHAIN[currency]
+      : chainsForCurrentAsset[0] ?? "ERC20";
+  const [selectedChain, setSelectedChain] = useState<ChainId>(initialChain);
+
+  const activeRail: PaymentRail =
+    toRail(selectedAsset, selectedChain) ?? currency;
+
+  const addressForRail = activeAddresses.find(
+    (d) => d.currency === railNetwork(activeRail)
+  );
+
+  // Keep the form's authoritative rail in sync.
+  function commitAsset(next: AssetSymbol) {
+    setSelectedAsset(next);
+    const chains = chainsForAsset(next, availableRails);
+    const target = chains.includes(selectedChain)
+      ? selectedChain
+      : chains[0];
+    if (target) {
+      setSelectedChain(target);
+      const rail = toRail(next, target);
+      if (rail) onCurrencyChange(rail);
+    }
   }
 
-  function copyAmountDue() {
-    void navigator.clipboard.writeText(formatUsd(amountDue));
-    toast.message("Amount due copied");
+  function commitChain(next: ChainId) {
+    setSelectedChain(next);
+    const rail = toRail(selectedAsset, next);
+    if (rail) onCurrencyChange(rail);
+  }
+
+if (assets.length === 0) {
+    return (
+      <p className="text-sm text-hotpink">
+        No deposit methods are configured yet.
+      </p>
+    );
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-sm font-semibold text-ink">Crypto deposit methods</p>
-      <div className="space-y-2">
-        {availableRails.map((rail) => {
-          const open = currency === rail;
-          const railDeposit = depositAddresses.find(
-            (d) => d.currency === railNetwork(rail) && d.is_active
-          );
+    <div className="space-y-4">
+      <p className="text-sm font-semibold text-ink">Pay with crypto</p>
+
+      {/* Asset picker (one selection per asset; cannot collapse). */}
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+        {assets.map((asset) => {
+          const active = asset === selectedAsset;
           return (
-            <div
-              key={rail}
+            <button
+              key={asset}
+              type="button"
+              onClick={() => commitAsset(asset)}
+              aria-pressed={active}
               className={cn(
-                "overflow-hidden rounded-2xl border transition",
-                open
-                  ? "border-orange/40 bg-orange/5 shadow-card"
-                  : "border-border bg-card hover:border-orange/30"
+                "flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 transition",
+                active
+                  ? "border-orange bg-orange/10 ring-2 ring-orange"
+                  : "border-border bg-card hover:border-orange/40"
               )}
             >
-              <button
-                type="button"
-                onClick={() => onCurrencyChange(rail)}
-                className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
-              >
-                <span>
-                  <span className="block font-display text-base text-ink">
-                    {ASSET_LABEL[RAIL_ASSET[rail]]}
-                  </span>
-                  <span className="mt-0.5 block text-xs text-muted-label">
-                    {CHAIN_LABEL[RAIL_CHAIN[rail]]} · {RAIL_LABEL[rail]}
-                  </span>
-                </span>
-                <motion.span
-                  animate={{ rotate: open ? 180 : 0 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.2 }}
-                  className="text-muted-label"
-                >
-                  <ChevronDown className="size-4" />
-                </motion.span>
-              </button>
-
-              <AnimatePresence initial={false}>
-                {open && (
-                  <motion.div
-                    key={`${rail}-panel`}
-                    initial={
-                      reduceMotion ? false : { height: 0, opacity: 0 }
-                    }
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={
-                      reduceMotion ? undefined : { height: 0, opacity: 0 }
-                    }
-                    transition={{ duration: 0.22, ease: "easeOut" }}
-                    className="overflow-hidden"
-                  >
-                    <div className="space-y-4 border-t border-border/70 px-4 pb-4 pt-3">
-                      {railDeposit ? (
-                        <>
-                          <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-                            <div className="rounded-xl bg-white p-2 shadow-card">
-                              <QRCodeSVG
-                                value={railDeposit.address}
-                                size={128}
-                              />
-                            </div>
-                            <div className="min-w-0 flex-1 space-y-3">
-                              <div>
-                                <p className="text-kicker">Amount due</p>
-                                <div className="mt-1 flex items-center gap-1">
-                                  <p className="font-display text-2xl tabular text-ink">
-                                    {formatUsd(amountDue)}
-                                  </p>
-                                  <Button
-                                    type="button"
-                                    size="icon-sm"
-                                    variant="ghost"
-                                    onClick={copyAmountDue}
-                                  >
-                                    <Copy className="size-4" />
-                                    <span className="sr-only">
-                                      Copy amount due
-                                    </span>
-                                  </Button>
-                                </div>
-                              </div>
-                              <div>
-                                <p className="text-kicker">Wallet address</p>
-                                <div className="mt-1 flex items-start gap-2">
-                                  <code className="flex-1 break-all text-sm tabular text-ink">
-                                    {railDeposit.address}
-                                  </code>
-                                  <Button
-                                    type="button"
-                                    size="icon-sm"
-                                    variant="ghost"
-                                    onClick={copyAddress}
-                                  >
-                                    <Copy className="size-4" />
-                                    <span className="sr-only">
-                                      Copy address
-                                    </span>
-                                  </Button>
-                                </div>
-                                <p className="mt-1 text-xs text-muted-label">
-                                  {RAIL_HINT[rail]}
-                                </p>
-                                {railDeposit.address.startsWith(
-                                  PLACEHOLDER_DEPOSIT_PREFIX
-                                ) && (
-                                  <p className="mt-2 text-xs text-hotpink">
-                                    Placeholder address — confirm with support
-                                    before sending funds.
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor={`tx-${rail}`}>
-                              Transaction hash
-                            </Label>
-                            <Input
-                              id={`tx-${rail}`}
-                              className="bg-white tabular"
-                              value={txHash}
-                              onChange={(e) => onTxHashChange(e.target.value)}
-                              placeholder="Paste your tx hash"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor={`note-${rail}`}>
-                              Note (optional)
-                            </Label>
-                            <Input
-                              id={`note-${rail}`}
-                              className="bg-white"
-                              value={note}
-                              onChange={(e) => onNoteChange(e.target.value)}
-                              placeholder="e.g. sent from exchange"
-                            />
-                          </div>
-
-                          <div className="rounded-xl bg-canvas px-3 py-2.5 text-xs text-muted-label">
-                            <p className="font-semibold text-ink">
-                              Important notes
-                            </p>
-                            <ul className="mt-1 list-disc space-y-0.5 pl-4">
-                              <li>
-                                Send only {formatRail(rail)} to this address.
-                              </li>
-                              <li>
-                                Submit the hash after the transfer is sent.
-                              </li>
-                              <li>Admin review is required before credit.</li>
-                            </ul>
-                          </div>
-
-                          {error && (
-                            <p className="text-sm text-hotpink">{error}</p>
-                          )}
-                          <Button
-                            className="w-full bg-orange text-white hover:bg-orange/90"
-                            disabled={loading || !railDeposit}
-                            onClick={onSubmit}
-                          >
-                            {loading ? (
-                              <>
-                                <Loader2 className="animate-spin" /> Submitting
-                              </>
-                            ) : (
-                              <>
-                                <Check className="size-4" />
-                                {submitLabel}
-                              </>
-                            )}
-                          </Button>
-                        </>
-                      ) : (
-                        <p className="text-sm text-hotpink">
-                          No active {railNetwork(rail)} deposit address. Contact
-                          support.
-                        </p>
-                      )}
-                    </div>
-                  </motion.div>
+              <span
+                className={cn(
+                  "flex size-9 items-center justify-center rounded-full text-base font-bold",
+                  ASSET_COLOR[asset]
                 )}
-              </AnimatePresence>
-            </div>
+              >
+                {ASSET_LOGO[asset]}
+              </span>
+              <span
+                className={cn(
+                  "text-sm font-bold",
+                  active ? "text-orange" : "text-ink"
+                )}
+              >
+                {ASSET_LABEL[asset]}
+              </span>
+            </button>
           );
         })}
       </div>
-      {availableRails.length === 0 && (
+
+      {/* Network dropdown — only when there's more than one chain for this asset. */}
+      {chainsForCurrentAsset.length > 1 && (
+        <div className="space-y-2">
+          <Label htmlFor="rail-network">Network</Label>
+          <Select
+            value={selectedChain}
+            onValueChange={(value) => {
+              if (value) commitChain(value as ChainId);
+            }}
+          >
+            <SelectTrigger id="rail-network">
+              <SelectValue placeholder="Choose network">
+                {CHAIN_LABEL[selectedChain]}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {chainsForCurrentAsset.map((chain) => (
+                <SelectItem key={chain} value={chain}>
+                  {CHAIN_LABEL[chain]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* QR + address */}
+      {addressForRail ? (
+        <div className="rounded-2xl border border-border bg-canvas p-4 sm:p-5">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+            <div className="rounded-xl bg-white p-2 shadow-card">
+              <QRCodeSVG value={addressForRail.address} size={140} />
+            </div>
+            <div className="min-w-0 flex-1 space-y-3">
+              <div className="flex items-center gap-1">
+                <p className="font-display text-2xl tabular text-ink">
+                  {formatUsd(amountDue)}
+                </p>
+                <CopyButton
+                  value={formatUsd(amountDue)}
+                  label="Copy amount"
+                />
+              </div>
+              <div className="flex items-start gap-2">
+                <code className="flex-1 break-all text-sm tabular text-ink">
+                  {addressForRail.address}
+                </code>
+                <CopyButton
+                  value={addressForRail.address}
+                  label="Copy address"
+                />
+              </div>
+              {addressForRail.address.startsWith(
+                PLACEHOLDER_DEPOSIT_PREFIX
+              ) && (
+                <p className="text-xs text-hotpink">
+                  Placeholder address — replace before going live.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
         <p className="text-sm text-hotpink">
-          No deposit methods are configured yet.
+          No active {railNetwork(activeRail)} deposit address. Contact
+          support.
         </p>
       )}
+
+      <div className="space-y-2">
+        <Label htmlFor="tx-hash">Transaction hash</Label>
+        <Input
+          id="tx-hash"
+          className="bg-white tabular"
+          value={txHash}
+          onChange={(e) => onTxHashChange(e.target.value)}
+          placeholder="Paste tx hash"
+          required
+        />
+      </div>
+      <Input
+        className="bg-white"
+        value={note}
+        onChange={(e) => onNoteChange(e.target.value)}
+        placeholder="Note (optional)"
+      />
+
+      <p className="text-xs text-muted-label">
+        Send only {formatRail(activeRail)} to this address.
+      </p>
+
+      {error && <p className="text-sm text-hotpink">{error}</p>}
+      <Button
+        className="w-full bg-orange text-white hover:bg-orange/90"
+        disabled={loading || !addressForRail}
+        onClick={onSubmit}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="animate-spin" /> Submitting
+          </>
+        ) : (
+          <>{submitLabel}</>
+        )}
+      </Button>
     </div>
   );
 }

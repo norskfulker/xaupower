@@ -1,59 +1,102 @@
-import { Boxes, Bot, Banknote, ArrowRight } from "lucide-react";
-import { SurfaceCard } from "@/components/ui/surface-card";
+"use client";
+
+import { useState } from "react";
+import { ChevronDown, Boxes, Bot, Banknote } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const STEPS = [
   {
-    n: "01",
-    title: "Buy a bot plan",
-    body: "Each purchase creates its own bot ID. You can run more than one bot at a time.",
+    id: "buy",
+    title: "Create an account",
+    body: "Pick a risk tier. Deposit any amount.",
     icon: Boxes,
   },
   {
-    n: "02",
-    title: "Bot executes trades",
-    body: "Each bot runs on its own plan. Other bots stay separate.",
+    id: "execute",
+    title: "Bot trades",
+    body: "Each account runs independently.",
     icon: Bot,
   },
   {
-    n: "03",
-    title: "Add funds or cash out",
-    body: "Use Add funds or Cashout on the bot card so money goes to the correct bot ID.",
+    id: "funds",
+    title: "Deposit, withdraw, transfer",
+    body: "Move funds any time.",
     icon: Banknote,
   },
 ] as const;
 
 export function DashboardHowItWorks() {
+  const [openId, setOpenId] = useState<string | null>(STEPS[0].id);
+
   return (
-    <SurfaceCard>
-      <p className="text-kicker">How it works</p>
-      <div className="mt-5 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-        {STEPS.map(({ n, title, body, icon: Icon }, i) => (
-          <div key={n} className="flex flex-1 flex-col items-stretch sm:flex-row sm:items-center">
-            <div className="flex min-h-[9.5rem] flex-1 flex-col rounded-2xl bg-canvas p-4 sm:p-5">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-kicker text-orange">{n}</span>
-                <span className="flex size-8 items-center justify-center rounded-xl bg-orange/10 text-orange">
-                  <Icon className="size-4" />
-                </span>
-              </div>
-              <h3 className="mt-3 text-base font-semibold leading-snug text-ink">
-                {title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-label">
-                {body}
-              </p>
-            </div>
-            {i < STEPS.length - 1 && (
-              <div
-                className="flex shrink-0 items-center justify-center py-1 text-orange sm:px-2 sm:py-0"
-                aria-hidden
-              >
-                <ArrowRight className="size-5 rotate-90 sm:rotate-0" />
-              </div>
-            )}
-          </div>
-        ))}
+    <section
+      aria-label="How it works"
+      className="rounded-2xl border border-border bg-card shadow-card"
+    >
+      <div className="p-6 sm:p-7">
+        <h2 className="font-display text-2xl tracking-tight text-ink sm:text-3xl">
+          How it works
+        </h2>
+        <p className="mt-1.5 text-sm text-muted-label">
+          Three steps from purchase to payout.
+        </p>
       </div>
-    </SurfaceCard>
+      <div className="border-t border-border">
+        {STEPS.map(({ id, title, body, icon: Icon }, i) => {
+          const open = openId === id;
+          return (
+            <div
+              key={id}
+              className={cn(
+                "border-border",
+                i > 0 && "border-t"
+              )}
+            >
+              <button
+                type="button"
+                aria-expanded={open}
+                aria-controls={`step-${id}`}
+                onClick={() => setOpenId(open ? null : id)}
+                className={cn(
+                  "flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition",
+                  "hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  open && "bg-canvas"
+                )}
+              >
+                <span className="flex items-center gap-3">
+                  <span
+                    className={cn(
+                      "flex size-8 shrink-0 items-center justify-center rounded-xl",
+                      open
+                        ? "bg-orange text-white"
+                        : "bg-orange/10 text-orange"
+                    )}
+                  >
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="font-display text-base text-ink sm:text-lg">
+                    {title}
+                  </span>
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "size-4 shrink-0 text-muted-label transition-transform",
+                    open && "rotate-180"
+                  )}
+                />
+              </button>
+              {open && (
+                <div
+                  id={`step-${id}`}
+                  className="bg-canvas px-5 pb-5 pt-1 text-sm leading-relaxed text-muted-label"
+                >
+                  {body}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

@@ -6,7 +6,6 @@ import { buttonVariants } from "@/components/ui/button-variants";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -140,9 +139,6 @@ export function QrScannerDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            Point the camera at a wallet QR, or upload a screenshot.
-          </DialogDescription>
         </DialogHeader>
         <video
           ref={videoRef}

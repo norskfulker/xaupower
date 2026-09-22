@@ -1,6 +1,5 @@
 "use client";
 
-import { CashierBottomNavItem } from "@/components/dashboard/cashier-dialog";
 import {
   ADMIN_NAV,
   USER_NAV,
@@ -55,12 +54,6 @@ export function FloatingBottomNav({
   const pathname = usePathname();
   const [overflowOpen, setOverflowOpen] = useState(false);
   const isAdminRoute = variant === "admin";
-
-  const cashierActive =
-    pathname.startsWith("/dashboard/cashier") ||
-    pathname.startsWith("/dashboard/balance") ||
-    pathname.startsWith("/dashboard/payout") ||
-    pathname.startsWith("/dashboard/payment");
 
   if (isAdminRoute) {
     const primary = ADMIN_NAV.slice(0, 3);
@@ -144,13 +137,12 @@ export function FloatingBottomNav({
           />
           <MobileNavLink
             item={USER_NAV[1]}
-            active={pathname.startsWith("/dashboard/packages")}
+            active={pathname.startsWith("/dashboard/accounts")}
           />
           <MobileNavLink
             item={USER_NAV[2]}
             active={pathname.startsWith("/dashboard/referrals")}
           />
-          <CashierBottomNavItem active={cashierActive} />
           {isAdmin && (
             <button
               type="button"

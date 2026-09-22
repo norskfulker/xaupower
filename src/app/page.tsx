@@ -1,15 +1,13 @@
-import { createClient, getAuthUser, getOwnProfile, getPriceQuotes } from "@/lib/supabase/server";
+import { getAuthUser, getOwnProfile, getPriceQuotes } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Wordmark } from "@/components/brand/wordmark";
 import { LandingHeader } from "@/components/landing/landing-header";
 import { LandingPriceChart } from "@/components/landing/landing-price-chart";
 import { LandingStickyBar } from "@/components/landing/landing-sticky-bar";
 import { LandingPerformanceTable } from "@/components/landing/landing-tables";
-import { PackagesGrid } from "@/components/packages/packages-grid";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
-import type { Package, PackageVariant } from "@/lib/types";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
@@ -39,7 +37,7 @@ const ctaPrimary = cn(
 
 const ctaSecondary = cn(
   buttonVariants({ variant: "outline", size: "lg" }),
-  "h-12 w-full border-border bg-white sm:h-11 sm:w-auto sm:min-w-[10rem]"
+  "h-12 w-full border-border bg-card sm:h-11 sm:w-auto sm:min-w-[10rem]"
 );
 
 const FEATURES: ReadonlyArray<{
@@ -125,20 +123,8 @@ export default async function HomePage() {
   const user = await getAuthUser();
   const profile = user ? await getOwnProfile(user.id) : null;
   const authHref = user ? "/dashboard" : "/login";
-  const plansHref = user ? "/dashboard/packages" : "/login";
   const quotes = await getPriceQuotes();
   const xauQuote = quotes.find((q) => q.pair === "XAUUSD") ?? null;
-
-  const supabase = await createClient();
-  const [{ data: packagesData }, { data: variantsData }] = await Promise.all([
-    supabase.from("packages").select("*").eq("is_active", true).order("price_usd"),
-    supabase.from("package_variants").select("*"),
-  ]);
-  const packages = (packagesData ?? []) as Package[];
-  const variants = ((variantsData ?? []) as PackageVariant[]).map((v) => ({
-    ...v,
-    roadmap: Array.isArray(v.roadmap) ? v.roadmap : [],
-  }));
 
   return (
     <div className="min-h-screen bg-canvas pt-28 text-ink pb-[calc(8rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
@@ -153,7 +139,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
         <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-16">
           <div className="flex flex-col gap-5 text-center sm:gap-6 lg:text-left">
-            <p className="text-kicker inline-flex items-center justify-center gap-2 self-center text-orange lg:self-start">
+            <p className="inline-flex items-center justify-center gap-2 self-center text-sm font-bold uppercase tracking-wide text-orange lg:self-start">
               <Target className="size-3.5 shrink-0" /> Fear of losing ends here
             </p>
             <h1 className="text-display">
@@ -217,7 +203,7 @@ export default async function HomePage() {
         className="mx-auto max-w-7xl border-t border-border px-4 py-12 sm:px-6 sm:py-16"
       >
         <div className="text-center">
-          <p className="text-kicker text-orange">Why the bot wins</p>
+          <p className="text-sm font-bold uppercase tracking-wide text-orange">Why the bot wins</p>
           <h2 className="mx-auto mt-2 max-w-2xl text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
             Built on advanced IRT & SMC strategies
           </h2>
@@ -243,7 +229,7 @@ export default async function HomePage() {
         className="mx-auto max-w-7xl border-t border-border px-4 py-12 sm:px-6 sm:py-16"
       >
         <div className="text-center">
-          <p className="text-kicker text-orange">3 steps</p>
+          <p className="text-sm font-bold uppercase tracking-wide text-orange">3 steps</p>
           <h2 className="mx-auto mt-2 max-w-2xl text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
             From fear to automated execution
           </h2>
@@ -252,7 +238,7 @@ export default async function HomePage() {
           {STEPS.map(({ n, title, body }, i) => (
             <li key={n} className="flex flex-1 flex-col sm:flex-row sm:items-center">
               <SurfaceCard className="flex h-full min-h-[12rem] flex-1 flex-col">
-                <p className="text-kicker text-orange">{n}</p>
+                <p className="text-sm font-bold uppercase tracking-wide text-orange">{n}</p>
                 <h3 className="mt-3 text-lg font-bold leading-snug text-ink">
                   {title}
                 </h3>
@@ -274,30 +260,42 @@ export default async function HomePage() {
       </section>
 
       {/* BOT PLANS */}
-      {packages.length > 0 && (
-        <section
-          id="plans"
-          className="mx-auto max-w-7xl border-t border-border px-4 py-12 sm:px-6 sm:py-16"
-        >
-          <div className="text-center">
-            <p className="text-kicker text-orange">Bot plans</p>
-            <h2 className="mx-auto mt-2 max-w-2xl text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
-              Pick your VPS bot access
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-label">
-              Each plan runs as its own bot — you can hold more than one at a time.
-            </p>
-          </div>
-          <div className="mt-8 sm:mt-10">
-            <PackagesGrid
-              packages={packages}
-              variants={variants}
-              ctaHref={plansHref}
-              ctaLabel="Buy Bot"
-            />
-          </div>
-        </section>
-      )}
+      <section
+        id="plans"
+        className="mx-auto max-w-7xl border-t border-border px-4 py-12 sm:px-6 sm:py-16"
+      >
+        <div className="text-center">
+          <p className="text-sm font-bold uppercase tracking-wide text-orange">Accounts</p>
+          <h2 className="mx-auto mt-2 max-w-2xl text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
+            One account or ten. Same bot, your rules.
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-muted-label">
+            Create as many accounts as you like. Deposit any amount. Move
+            funds between accounts or to other users instantly.
+          </p>
+        </div>
+        <div className="mt-8 grid gap-4 sm:gap-6 sm:grid-cols-3">
+          <SurfaceCard className="flex flex-col gap-3">
+            <p className="font-display text-base text-orange">$99</p>
+            <p className="text-sm font-semibold text-ink">Starter account</p>
+            <p className="text-xs text-muted-label">Conservative. Steady daily target.</p>
+          </SurfaceCard>
+          <SurfaceCard className="flex flex-col gap-3">
+            <p className="font-display text-base text-orange">$399</p>
+            <p className="text-sm font-semibold text-ink">Standard account</p>
+            <p className="text-xs text-muted-label">Balanced. Moderate drawdown.</p>
+          </SurfaceCard>
+          <SurfaceCard className="flex flex-col gap-3">
+            <p className="font-display text-base text-orange">$999+</p>
+            <p className="text-sm font-semibold text-ink">Aggressive account</p>
+            <p className="text-xs text-muted-label">Higher volatility, higher target.</p>
+          </SurfaceCard>
+        </div>
+        <p className="mt-6 text-center text-xs text-muted-label">
+          Deposits above $10 in any amount are accepted. Pick your tier when
+          you create the account.
+        </p>
+      </section>
 
       {/* PAST PERFORMANCE */}
       <section
@@ -305,7 +303,7 @@ export default async function HomePage() {
         className="mx-auto max-w-7xl border-t border-border px-4 py-12 sm:px-6 sm:py-16"
       >
         <div className="text-center">
-          <p className="text-kicker text-orange">Past performance</p>
+          <p className="text-sm font-bold uppercase tracking-wide text-orange">Past performance</p>
           <h2 className="mx-auto mt-2 max-w-2xl text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
             What disciplined execution looks like
           </h2>

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Deposits live in Cashier — keep this route for old links. */
+/** Balance/deposit live in the dashboard's accounts section. */
 export default function BalancePage() {
-  redirect("/dashboard/cashier");
+  redirect("/dashboard");
 }

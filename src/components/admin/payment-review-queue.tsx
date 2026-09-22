@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CopyButton } from "@/components/ui/copy-button";
 import { formatUsd, PAYMENT_KIND_BLURB, PAYMENT_KIND_LABEL } from "@/lib/format";
 import { explorerTxUrl } from "@/lib/explorer";
-import { paymentPackageLabel } from "@/lib/package-terms";
 import { formatRail } from "@/lib/wallets";
 import type { Payment } from "@/lib/types";
 
@@ -72,8 +71,7 @@ export function PaymentReviewQueue({
     <section id="payments" className="space-y-6">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-kicker">Queue</p>
-          <h2 className="mt-1 text-xl font-bold text-ink">Payment review</h2>
+          <h2 className="text-xl font-bold text-ink">Payment review</h2>
         </div>
         <span className="rounded-full bg-orange/20 px-3 py-1 text-xs font-semibold text-orange">
           {queue.length} pending
@@ -87,9 +85,6 @@ export function PaymentReviewQueue({
       ) : (
         <ul className="space-y-3">
           {queue.map((p) => {
-            const pkgLabel =
-              paymentPackageLabel(p) ??
-              (p.kind === "package" ? "Package" : null);
             const explorer = p.tx_hash
               ? explorerTxUrl(p.currency, p.tx_hash)
               : null;
@@ -104,35 +99,23 @@ export function PaymentReviewQueue({
                       {formatUsd(p.amount_usd)} · {formatRail(p.currency)}
                     </p>
                     <p className="mt-1 text-sm text-ink/70">
-                      {PAYMENT_KIND_LABEL[p.kind ?? "package"]}
-                      {pkgLabel ? ` · ${pkgLabel}` : ""}
-                      {p.kind === "balance" && p.user_package_id
-                        ? " · existing bot top-up"
-                        : ""}
-                      {p.kind === "package" ? " · creates new bot ID" : ""}
+                      {PAYMENT_KIND_LABEL[p.kind]}
                     </p>
                     <p className="mt-1 max-w-md text-xs text-ink/40">
-                      {PAYMENT_KIND_BLURB[p.kind ?? "package"]}
+                      {PAYMENT_KIND_BLURB[p.kind]}
                     </p>
                     <p className="mt-1 text-sm text-ink/50">
-                      {(p.profiles as { email?: string } | null)?.email ??
-                        p.user_id.slice(0, 8)}
+                      {p.profiles?.email ?? p.user_id.slice(0, 8)}
                     </p>
                     {p.tx_hash && (
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                         <code className="break-all tabular text-ink/70">
                           {p.tx_hash}
                         </code>
-                        <button
-                          type="button"
-                          className="text-ink/50 hover:text-ink"
-                          onClick={() => {
-                            void navigator.clipboard.writeText(p.tx_hash!);
-                            toast.message("Tx hash copied");
-                          }}
-                        >
-                          <Copy className="size-3.5" />
-                        </button>
+                        <CopyButton
+                          value={p.tx_hash!}
+                          label="Copy tx hash"
+                        />
                         {explorer && (
                           <a
                             href={explorer}
@@ -182,7 +165,7 @@ export function PaymentReviewQueue({
                     <Input
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
-                    className="bg-canvas text-ink"
+                      className="bg-canvas text-ink"
                       placeholder="e.g. Tx hash not found on-chain"
                     />
                     <Button

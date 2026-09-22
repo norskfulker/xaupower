@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendAdminDepositAlert, sendUserDepositNotice } from "@/lib/email";
-import { PAYMENT_KIND_LABEL } from "@/lib/format";
 import { isPaymentRail } from "@/lib/wallets";
-import { SIGNAL_PRICE_USD, MAX_BALANCE_TOPUP_USD, type PaymentKind } from "@/lib/types";
+import { MIN_DEPOSIT_USD, MAX_DEPOSIT_USD } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
@@ -17,109 +16,56 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as {
-      kind?: PaymentKind;
-      packageVariantId?: string;
-      initialDepositUsd?: number;
+      accountId?: string;
       amountUsd?: number;
       currency?: string;
       txHash?: string;
       userNote?: string;
-      userPackageId?: string;
     };
 
-    const kind: PaymentKind = body.kind ?? "package";
-    if (!["package", "balance", "signal"].includes(kind)) {
-      return NextResponse.json({ error: "Invalid payment type" }, { status: 400 });
-    }
-
-    if (!body.currency || !body.txHash?.trim()) {
+    if (!body.accountId) {
       return NextResponse.json(
-        { error: "Currency and tx hash are required" },
+        { error: "accountId is required" },
         { status: 400 }
       );
     }
-
     if (!body.currency || !isPaymentRail(body.currency)) {
       return NextResponse.json({ error: "Invalid currency" }, { status: 400 });
     }
-
-    if (kind === "balance") {
-      const amount = Number(body.amountUsd);
-      if (!Number.isFinite(amount) || amount > MAX_BALANCE_TOPUP_USD) {
-        return NextResponse.json(
-          { error: `Maximum per payment is $${MAX_BALANCE_TOPUP_USD.toLocaleString()}` },
-          { status: 400 }
-        );
-      }
-    }
-
-    if (kind === "package") {
-      const extra = Number(body.initialDepositUsd ?? 0);
-      if (!Number.isFinite(extra) || extra < 0) {
-        return NextResponse.json({ error: "Invalid additional amount" }, { status: 400 });
-      }
-    }
-
-    if (kind === "package" && !body.packageVariantId) {
+    if (!body.txHash?.trim()) {
       return NextResponse.json(
-        { error: "Package, currency, and tx hash are required" },
+        { error: "Transaction hash is required" },
+        { status: 400 }
+      );
+    }
+    const amount = Number(body.amountUsd);
+    if (!Number.isFinite(amount) || amount < MIN_DEPOSIT_USD) {
+      return NextResponse.json(
+        { error: `Minimum deposit is $${MIN_DEPOSIT_USD}` },
+        { status: 400 }
+      );
+    }
+    if (amount > MAX_DEPOSIT_USD) {
+      return NextResponse.json(
+        { error: `Maximum per payment is $${MAX_DEPOSIT_USD.toLocaleString()}` },
         { status: 400 }
       );
     }
 
-    if (kind === "package" && body.packageVariantId) {
-      const { data: variant } = await supabase
-        .from("package_variants")
-        .select("price_usd")
-        .eq("id", body.packageVariantId)
-        .single();
-      const planPrice = Number(variant?.price_usd ?? 0);
-      const extra = Number(body.initialDepositUsd ?? 0);
-      if (planPrice + extra > MAX_BALANCE_TOPUP_USD) {
-        return NextResponse.json(
-          { error: `Maximum per payment is $${MAX_BALANCE_TOPUP_USD.toLocaleString()}` },
-          { status: 400 }
-        );
-      }
-    }
-
-    const { data: payment, error } = await supabase.rpc("submit_manual_payment", {
-      p_kind: kind,
+    const { data: payment, error } = await supabase.rpc("submit_deposit", {
+      p_account_id: body.accountId,
+      p_amount_usd: amount,
       p_currency: body.currency,
       p_tx_hash: body.txHash.trim(),
-      p_package_variant_id: kind === "package" ? body.packageVariantId : null,
-      p_amount_usd: kind === "balance" ? Number(body.amountUsd) : null,
       p_user_note: body.userNote?.trim() || null,
-      p_initial_deposit_usd:
-        kind === "package" ? Number(body.initialDepositUsd) : null,
-      p_user_package_id:
-        kind === "balance" ? body.userPackageId ?? null : null,
     });
 
     if (error || !payment) {
-      console.error("submit_manual_payment failed", error);
+      console.error("submit_deposit failed", error);
       const message =
         error?.message?.replace(/^.*ERROR:\s*/i, "").split("\n")[0] ||
-        "Could not submit payment";
+        "Could not submit deposit";
       return NextResponse.json({ error: message }, { status: 400 });
-    }
-
-    let packageLabel = PAYMENT_KIND_LABEL[kind];
-    let riskTier = String(kind);
-    let amountUsd = Number(payment.amount_usd ?? 0);
-
-    if (kind === "package" && body.packageVariantId) {
-      const { data: variant } = await supabase
-        .from("package_variants")
-        .select("risk_tier, price_usd, packages(name)")
-        .eq("id", body.packageVariantId)
-        .single();
-      packageLabel =
-        (variant?.packages as { name?: string } | null)?.name ?? "Package";
-      riskTier = String(variant?.risk_tier ?? "");
-      amountUsd = Number(variant?.price_usd ?? payment.amount_usd);
-    } else if (kind === "signal") {
-      amountUsd = SIGNAL_PRICE_USD;
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -127,10 +73,9 @@ export async function POST(request: Request) {
     try {
       await sendAdminDepositAlert({
         userEmail: user.email ?? "unknown",
-        packageLabel,
-        riskTier,
+        accountCode: (payment as { account_id?: string }).account_id ?? "",
         currency: body.currency,
-        amountUsd,
+        amountUsd: amount,
         txHash: body.txHash.trim(),
         reviewUrl: `${appUrl}/admin/payments`,
       });
@@ -150,7 +95,7 @@ export async function POST(request: Request) {
       if (prefs?.email_deposits !== false && user.email) {
         await sendUserDepositNotice({
           to: user.email,
-          amountUsd,
+          amountUsd: amount,
           currency: body.currency,
         });
       }
@@ -160,9 +105,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ payment });
   } catch (err) {
-    console.error("payment submit error", err);
+    console.error("deposit submit error", err);
     return NextResponse.json(
-      { error: "Could not submit payment" },
+      { error: "Could not submit deposit" },
       { status: 500 }
     );
   }

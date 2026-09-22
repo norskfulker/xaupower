@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { formatUsd } from "@/lib/format";
-import type { LedgerTransaction, TransactionType } from "@/lib/types";
+import type { Account, LedgerTransaction, TransactionType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +16,10 @@ import {
 
 export function TransactionsTable({
   rows,
+  accounts = [],
 }: {
   rows: LedgerTransaction[];
+  accounts?: Account[];
 }) {
   const [type, setType] = useState<string>("all");
   const [q, setQ] = useState("");
@@ -67,10 +69,10 @@ export function TransactionsTable({
             <SelectContent>
               <SelectItem value="all">All types</SelectItem>
               <SelectItem value="deposit">Deposit</SelectItem>
-              <SelectItem value="payout">Payout</SelectItem>
-              <SelectItem value="package_purchase">Package purchase</SelectItem>
-              <SelectItem value="signal_settlement">Signal settlement</SelectItem>
-              <SelectItem value="bot_return">Bot return</SelectItem>
+              <SelectItem value="withdrawal">Withdrawal</SelectItem>
+              <SelectItem value="transfer_in">Transfer in</SelectItem>
+              <SelectItem value="transfer_out">Transfer out</SelectItem>
+              <SelectItem value="daily_return">Daily return</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -116,7 +118,9 @@ export function TransactionsTable({
                   <td className="px-4 py-3.5">
                     <TypeBadge type={r.type} />
                   </td>
-                  <td className="px-4 py-3.5 text-ink">{r.description}</td>
+                  <td className="px-4 py-3.5 text-ink">
+                    <RowDescription row={r} accounts={accounts} />
+                  </td>
                   <td
                     className={cn(
                       "px-4 py-3.5 font-semibold tabular",
@@ -127,7 +131,7 @@ export function TransactionsTable({
                     {formatUsd(amount)}
                   </td>
                   <td className="px-4 py-3.5 capitalize text-muted-label">
-                    {r.status_at_time.replace("_", " ")}
+                    {r.description.split(" ").slice(0, 2).join(" ")}
                   </td>
                 </tr>
               );
@@ -144,5 +148,22 @@ function TypeBadge({ type }: { type: TransactionType }) {
     <Badge className="bg-canvas capitalize text-ink">
       {type.replace("_", " ")}
     </Badge>
+  );
+}
+
+function RowDescription({
+  row,
+  accounts,
+}: {
+  row: LedgerTransaction;
+  accounts: Account[];
+}) {
+  const acct = accounts.find((a) => a.id === row.account_id);
+  const acctLabel = acct ? `${acct.name} (${acct.account_code})` : "—";
+  return (
+    <span>
+      {row.description}
+      <span className="ml-1 text-xs text-muted-label">· {acctLabel}</span>
+    </span>
   );
 }

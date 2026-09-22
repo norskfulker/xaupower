@@ -15,7 +15,7 @@ export function AdminStatCard({
           : "flex h-full min-h-[10.5rem] flex-col rounded-2xl bg-card p-6 shadow-card sm:min-h-[11.5rem] sm:p-7"
       }
     >
-      <p className="text-kicker">{label}</p>
+      <p className="text-sm font-semibold text-ink">{label}</p>
       <p className="text-metric mt-4 break-words text-ink">{value}</p>
     </div>
   );

@@ -3,12 +3,11 @@ import { AccessToast } from "@/components/auth/access-toast";
 import {
   getAuthUser,
   getOwnProfile,
-  createClient,
   redirectIfMfaPending,
   getPriceQuotes,
 } from "@/lib/supabase/server";
-import { packageDisplayLabel, resolveUserPackageTerms } from "@/lib/package-terms";
-import type { UserPackage } from "@/lib/types";
+import { getAccountsForUser } from "@/lib/supabase/accounts";
+import type { Account } from "@/lib/types";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -40,26 +39,17 @@ export default async function DashboardLayout({
   if (!user) redirect("/login");
   await redirectIfMfaPending("/dashboard");
 
-  const supabase = await createClient();
-  const [profile, pkgRes, quotes] = await Promise.all([
+  const [profile, accounts, quotes] = await Promise.all([
     getOwnProfile(user.id),
-    supabase
-      .from("user_packages")
-      .select("variant_snapshot, package_variants(risk_tier, packages(name))")
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .order("purchased_at", { ascending: false }),
+    getAccountsForUser(user.id),
     getPriceQuotes(),
   ]);
 
-  const activePkgs = (pkgRes.data ?? []) as unknown as UserPackage[];
-  const firstTerms = activePkgs[0]
-    ? resolveUserPackageTerms(activePkgs[0])
-    : null;
+  const activeAccounts = accounts.filter((a: Account) => a.status === "active");
   const memberLabel =
-    activePkgs.length > 1
-      ? `${activePkgs.length} bots`
-      : packageDisplayLabel(firstTerms) ?? "Member";
+    activeAccounts.length > 1
+      ? `${activeAccounts.length} accounts`
+      : activeAccounts[0]?.name ?? "Member";
 
   return (
     <AppHeader

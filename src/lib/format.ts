@@ -19,13 +19,6 @@ export function formatUsdInteger(value: number | string | null | undefined): str
   }).format(Number.isFinite(n) ? Math.round(n) : 0);
 }
 
-export function planFeatureBullets(features: string[] | null | undefined): string[] {
-  return (features ?? []).filter(
-    (feature) =>
-      !/3-week|daily return|credited at 03:00/i.test(feature)
-  );
-}
-
 export function formatPrice(value: number | string | null | undefined, digits = 2): string {
   const n = typeof value === "string" ? Number(value) : value ?? 0;
   return new Intl.NumberFormat("en-US", {
@@ -61,25 +54,48 @@ export const RISK_LABEL: Record<
   aggressive: "Aggressive",
 };
 
-export const WEEKLY_PROFIT_PCT: Record<
+/** Daily return %, used by the account daily-return credit function. */
+export const DAILY_RETURN_PCT: Record<
   "conservative" | "standard" | "aggressive",
   number
 > = {
-  conservative: 25,
-  standard: 50,
-  aggressive: 100,
+  conservative: 0.8,
+  standard: 1.2,
+  aggressive: 1.8,
 };
 
-export const PAYMENT_KIND_LABEL: Record<"package" | "balance" | "signal", string> =
-  {
-    package: "New bot purchase",
-    balance: "Add funds to bot",
-    signal: "Signals (legacy)",
-  };
+export const PAYMENT_KIND_LABEL: Record<"deposit" | "withdrawal" | "transfer", string> = {
+  deposit: "Deposit",
+  withdrawal: "Withdrawal",
+  transfer: "Transfer",
+};
 
-export const PAYMENT_KIND_BLURB: Record<"package" | "balance" | "signal", string> =
-  {
-    package: "Starts a new bot after approval.",
-    balance: "Adds to the selected bot after approval.",
-    signal: "Legacy signal purchases — no longer offered.",
-  };
+export const PAYMENT_KIND_BLURB: Record<"deposit" | "withdrawal" | "transfer", string> = {
+  deposit: "Add funds to an account.",
+  withdrawal: "Send funds out of an account.",
+  transfer: "Move funds between accounts or users.",
+};
+
+export const ACCOUNT_STATUS_LABEL: Record<"active" | "expired" | "draining", string> = {
+  active: "Active",
+  expired: "Expired",
+  draining: "Draining",
+};
+
+export const TRANSFER_STATUS_LABEL: Record<"pending" | "completed" | "rejected" | "expired", string> = {
+  pending: "Awaiting recipient",
+  completed: "Completed",
+  rejected: "Rejected",
+  expired: "Expired",
+};
+
+/** Tier-specific target/max-drawdown for an account's bot. These mirror the
+ *  values that were on package_variants previously and are now just config. */
+export const ACCOUNT_RISK_CONFIG: Record<
+  "conservative" | "standard" | "aggressive",
+  { profitTargetPct: number; maxDrawdownPct: number }
+> = {
+  conservative: { profitTargetPct: 5, maxDrawdownPct: 30 },
+  standard: { profitTargetPct: 8, maxDrawdownPct: 40 },
+  aggressive: { profitTargetPct: 12, maxDrawdownPct: 50 },
+};

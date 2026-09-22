@@ -43,8 +43,9 @@ export async function sendUserPayoutNotice(input: {
 }
 export async function sendAdminDepositAlert(input: {
   userEmail: string;
-  packageLabel: string;
-  riskTier: string;
+  accountCode?: string;
+  packageLabel?: string;
+  riskTier?: string;
   currency: string;
   amountUsd: number;
   txHash: string;
@@ -58,11 +59,13 @@ export async function sendAdminDepositAlert(input: {
   }
 
   const resend = new Resend(apiKey);
+  const accountLabel = input.packageLabel ?? input.accountCode ?? "Account";
+  const risk = input.riskTier ?? "—";
   const text = [
     "New deposit submitted for review",
     "",
     `User: ${input.userEmail}`,
-    `Package: ${input.packageLabel} (${input.riskTier})`,
+    `Account: ${accountLabel} (${risk})`,
     `Currency: ${input.currency}`,
     `Amount (expected): $${input.amountUsd.toFixed(2)}`,
     `Tx hash: ${input.txHash}`,
@@ -73,7 +76,7 @@ export async function sendAdminDepositAlert(input: {
   await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL ?? "XAUPower <onboarding@resend.dev>",
     to,
-    subject: `Deposit review: ${input.packageLabel} ${input.riskTier}`,
+    subject: `Deposit review: ${accountLabel} ${risk}`,
     text,
   });
 }

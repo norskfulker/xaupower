@@ -1,10 +1,9 @@
 "use client";
 
-import { CashierDialog } from "@/components/dashboard/cashier-dialog";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
-import { Cpu, MessageCircle } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 const TELEGRAM_URL =
@@ -13,19 +12,28 @@ const TELEGRAM_URL =
 export function DashboardQuickActions() {
   return (
     <SurfaceCard>
-      <p className="text-kicker">Quick actions</p>
+      <h2 className="font-display text-lg text-ink">Quick actions</h2>
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Link
-          href="/dashboard/packages"
-          prefetch={false}
+        <a
+          href="#accounts"
           className={cn(
             buttonVariants({}),
             "h-11 w-full justify-start gap-2 bg-orange text-white hover:bg-orange/90"
           )}
         >
-          <Cpu className="size-4" />
-          Buy Bot
-        </Link>
+          <ArrowDownLeft className="size-4" />
+          Deposit
+        </a>
+        <a
+          href="#accounts"
+          className={cn(
+            buttonVariants({ variant: "outline" }),
+            "h-11 w-full justify-start gap-2"
+          )}
+        >
+          <ArrowUpRight className="size-4" />
+          Withdraw
+        </a>
         <Link
           href={TELEGRAM_URL}
           target="_blank"
@@ -39,7 +47,6 @@ export function DashboardQuickActions() {
           <MessageCircle className="size-4" />
           Telegram
         </Link>
-        <CashierDialog />
       </div>
     </SurfaceCard>
   );

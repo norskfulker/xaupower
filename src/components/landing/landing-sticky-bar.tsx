@@ -33,7 +33,7 @@ export function LandingStickyBar({
             rel="noopener noreferrer"
             className={cn(
               buttonVariants({ variant: "outline", size: "lg" }),
-              "h-12 w-full bg-white/80 sm:h-11 md:w-auto md:min-w-[10rem]"
+              "h-12 w-full bg-card sm:h-11 md:w-auto md:min-w-[10rem]"
             )}
           >
             <MessageCircle className="size-4 shrink-0" />

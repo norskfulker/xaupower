@@ -80,8 +80,7 @@ export function SignalManager({
   return (
     <section id="signals" className="space-y-8">
       <div>
-        <p className="text-kicker">Admin</p>
-        <h2 className="mt-1 text-xl font-bold text-ink">Signal management</h2>
+        <h2 className="text-xl font-bold text-ink">Signal management</h2>
       </div>
 
       <div className="grid gap-4 rounded-2xl bg-card p-6 shadow-card md:grid-cols-5 sm:p-7">

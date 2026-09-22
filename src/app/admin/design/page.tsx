@@ -47,7 +47,6 @@ const BRAND_COLORS = [
 const TYPE_SCALE = [
   { label: "Display", className: "text-display", sample: "Automated Gold Trading" },
   { label: "Metric", className: "text-metric text-orange", sample: "2,648.50" },
-  { label: "Kicker", className: "text-kicker", sample: "System Overview" },
   { label: "H2", className: "text-2xl font-black tracking-tight", sample: "Section heading" },
   { label: "Card title", className: "text-lg font-bold", sample: "Card title" },
   { label: "Body", className: "text-base", sample: "Body copy for descriptions." },
@@ -58,8 +57,7 @@ export default function AdminDesignPage() {
   return (
     <div className="space-y-12">
       <header>
-        <p className="text-kicker text-orange">Admin · Design</p>
-        <h1 className="text-display mt-2 text-3xl sm:text-4xl">Design system</h1>
+        <h1 className="text-display text-3xl sm:text-4xl">Design system</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-label">
           Bold-minimal tokens, floating nav, surface cards, and UI primitives.
         </p>
@@ -69,20 +67,20 @@ export default function AdminDesignPage() {
         <h2 className="text-xl font-bold">Shadow & radius tokens</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <SurfaceCard>
-            <p className="text-kicker">Surface card</p>
+            <p className="text-sm font-semibold text-ink">Surface card</p>
             <p className="mt-2 text-sm text-muted-label">
               <code className="text-xs">rounded-2xl shadow-card</code>
             </p>
           </SurfaceCard>
           <div className="surface-float p-5">
-            <p className="text-kicker">Float surface</p>
+            <p className="text-sm font-semibold text-ink">Float surface</p>
             <p className="mt-2 text-sm text-muted-label">
               Nav bars · <code className="text-xs">shadow-float backdrop-blur</code>
             </p>
           </div>
           <Card>
             <CardContent className="pt-5">
-              <p className="text-kicker">Card primitive</p>
+              <p className="text-sm font-semibold text-ink">Card primitive</p>
               <p className="mt-2 text-sm text-muted-label">Default shadcn Card with updated radius.</p>
             </CardContent>
           </Card>
@@ -144,7 +142,7 @@ export default function AdminDesignPage() {
                 key={row.label}
                 className="flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:gap-8"
               >
-                <span className="text-kicker w-24 shrink-0">{row.label}</span>
+                <span className="w-24 shrink-0 text-sm font-semibold text-ink">{row.label}</span>
                 <p className={row.className}>{row.sample}</p>
               </div>
             ))}
@@ -225,7 +223,7 @@ export default function AdminDesignPage() {
           </Card>
           <Card className="rounded-2xl bg-ink text-white ring-0">
             <CardContent className="pt-5">
-              <p className="text-kicker text-white/40">Live price</p>
+              <p className="text-sm font-semibold text-white/70">Live price</p>
               <p className="text-metric mt-4 text-gold">2,648.50</p>
             </CardContent>
           </Card>

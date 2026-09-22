@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { formatUsd, PAYMENT_KIND_LABEL } from "@/lib/format";
-import { paymentPackageLabel } from "@/lib/package-terms";
 import { formatRail } from "@/lib/wallets";
 import { cn } from "@/lib/utils";
 import type { Payment } from "@/lib/types";
@@ -25,8 +24,7 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-kicker">Admin</p>
-          <h2 className="mt-1 text-display text-3xl sm:text-4xl">Payments</h2>
+          <h2 className="text-display text-3xl sm:text-4xl">Payments</h2>
         </div>
         <div className="w-52">
           <Select value={status} onValueChange={(value) => value && setStatus(value)}>
@@ -38,11 +36,7 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
               <SelectItem value="pending_review">Pending review</SelectItem>
               <SelectItem value="confirmed">Confirmed</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
-              <SelectItem value="waiting">Waiting</SelectItem>
-              <SelectItem value="confirming">Confirming</SelectItem>
-              <SelectItem value="partially_paid">Partially paid</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="expired">Expired</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -53,19 +47,18 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
             <tr>
               <th className="px-3 py-2">Amount</th>
               <th className="px-3 py-2">Type</th>
-              <th className="px-3 py-2">Package terms</th>
+              <th className="px-3 py-2">User</th>
               <th className="px-3 py-2">Currency</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2">Created</th>
-              <th className="px-3 py-2">NOWPayments id</th>
+              <th className="px-3 py-2">Tx hash</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((p) => {
               const ageMs = Date.now() - new Date(p.created_at).getTime();
               const stuck =
-                (p.status === "waiting" || p.status === "confirming") &&
-                ageMs > 60 * 60 * 1000;
+                p.status === "pending_review" && ageMs > 60 * 60 * 1000;
               return (
                 <tr
                   key={p.id}
@@ -75,11 +68,9 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
                   )}
                 >
                   <td className="px-3 py-2 tabular">{formatUsd(p.amount_usd)}</td>
-                  <td className="px-3 py-2">
-                    {PAYMENT_KIND_LABEL[p.kind ?? "package"]}
-                  </td>
+                  <td className="px-3 py-2">{PAYMENT_KIND_LABEL[p.kind]}</td>
                   <td className="px-3 py-2 text-ink/70">
-                    {paymentPackageLabel(p) ?? "—"}
+                    {p.profiles?.email ?? "—"}
                   </td>
                   <td className="px-3 py-2">{formatRail(p.currency)}</td>
                   <td className="px-3 py-2 capitalize">
@@ -94,7 +85,7 @@ export function PaymentsTable({ payments }: { payments: Payment[] }) {
                     {new Date(p.created_at).toLocaleString()}
                   </td>
                   <td className="px-3 py-2 text-xs tabular text-ink/50">
-                    {p.nowpayments_payment_id ?? "—"}
+                    {p.tx_hash ?? "—"}
                   </td>
                 </tr>
               );

@@ -46,7 +46,6 @@ export default async function AdminPage() {
   return (
     <>
       <div>
-        <p className="text-kicker">Admin</p>
         <h1 className="text-display mt-1 text-3xl sm:text-4xl">Overview</h1>
       </div>
 
@@ -54,7 +53,7 @@ export default async function AdminPage() {
         <AdminStatCard label="Total revenue" value={formatUsd(totalRevenue)} />
         <AdminStatCard
           label="Active users"
-          value={String(userRows.filter((u) => u.packageName).length)}
+          value={String(userRows.filter((u) => u.accountCount > 0).length)}
         />
         <AdminStatCard
           label="Packages sold this month"
